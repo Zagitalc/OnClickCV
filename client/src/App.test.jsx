@@ -25,6 +25,9 @@ jest.mock("./components/CVForm", () => (props) => (
         <button type="button" onClick={() => props.onOpenAIReview()}>
             Mock Open AI
         </button>
+        <button type="button" onClick={() => props.onLoad("demo_user")}>
+            Mock Load Demo
+        </button>
         <span>{(props.exportFileSuggestions || []).join("|")}</span>
     </div>
 ));
@@ -50,6 +53,7 @@ describe("App", () => {
         });
         window.URL.createObjectURL = jest.fn(() => "blob:mock");
         window.URL.revokeObjectURL = jest.fn();
+        window.alert = jest.fn();
         consumeSse.mockReset();
         delete process.env.REACT_APP_AI_REVIEW_ENABLED;
     });
@@ -136,6 +140,27 @@ describe("App", () => {
         });
 
         expect(container.textContent).toContain("TemplateB");
+    });
+
+    it("loads bundled demo CV when demo_user cannot be fetched from the API", async () => {
+        global.fetch = jest.fn().mockResolvedValueOnce({
+            ok: false,
+            json: async () => ({ error: "CV not found" })
+        });
+
+        act(() => {
+            root.render(<App />);
+        });
+
+        const loadBtn = Array.from(container.querySelectorAll("button")).find(
+            (btn) => btn.textContent === "Mock Load Demo"
+        );
+        await act(async () => {
+            Simulate.click(loadBtn);
+        });
+
+        expect(window.alert).toHaveBeenCalledWith("Demo CV loaded!");
+        expect(container.textContent).toContain("Maya_Patel_CV");
     });
 
     it("switches desktop right panel between preview and AI review when AI is enabled", () => {
@@ -274,4 +299,3 @@ describe("App", () => {
         expect(container.textContent).toContain("Fallback suggestion");
     });
 });
-

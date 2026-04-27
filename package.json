@@ -3,7 +3,9 @@
   "private": true,
   "scripts": {
     "dev": "bash scripts/dev.sh",
+    "start:mongo": "docker compose up -d mongo",
     "start:server": "npm --prefix server start",
-    "start:client": "npm --prefix client start"
+    "start:client": "npm --prefix client start",
+    "seed:demo": "npm --prefix server run seed:demo"
   }
 }
