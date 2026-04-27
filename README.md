@@ -153,6 +153,30 @@ You can now use Tailwind utility classes throughout your React components.
 
 The backend server runs by default on `http://localhost:4000`, and the frontend runs on `http://localhost:3000`.
 
+### Step 6: Load a demo CV
+
+In the app, enter this user ID in the Save/Load card and click **Load CV**:
+
+```text
+demo_user
+```
+
+The app includes a bundled fallback for `demo_user`, so the demo CV can load even when MongoDB is not running.
+
+To also seed the same demo CV into the configured MongoDB database, start MongoDB first:
+
+```bash
+npm run start:mongo
+```
+
+Then run:
+
+```bash
+npm run seed:demo
+```
+
+The seed is idempotent: if `demo_user` already exists, it leaves the existing CV untouched.
+
 ## Docker
 
 You can run OnClickCV as a single app container (frontend + backend) with MongoDB.

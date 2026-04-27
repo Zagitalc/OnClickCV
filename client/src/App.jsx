@@ -5,6 +5,7 @@ import AIReviewPanel from "./components/AIReviewPanel";
 import AIReviewModal from "./components/AIReviewModal";
 import MobileSpeedDial from "./components/MobileSpeedDial";
 import { TEMPLATE_OPTIONS } from "./constants/templates";
+import { DEMO_CV_USER_ID, getDemoCvData } from "./data/demoCv";
 import { getDefaultSectionLayout, normalizeSectionLayout } from "./utils/sectionLayout";
 import { buildFilenameSuggestions, resolveExportFilename, sanitizeFilenameBase } from "./utils/exportFilename";
 import { applySuggestionPatch, parseSuggestionFieldPath } from "./utils/aiPatch";
@@ -284,19 +285,28 @@ function App() {
     };
 
     const handleLoadCV = async (userId) => {
+        const requestedUserId = String(userId || "").trim();
+        const loadCvData = (data, message = "CV loaded!") => {
+            const normalized = normalizeCvDataShape(data);
+            setCvData(normalized);
+            setReviewMarkers({});
+            setAiReviewState((prev) => ({ ...prev, status: "idle", error: "", data: null }));
+            alert(message);
+        };
+
         try {
-            const response = await fetch(apiUrl(`/api/cv/${userId}`));
+            const response = await fetch(apiUrl(`/api/cv/${encodeURIComponent(requestedUserId)}`));
             if (!response.ok) {
                 throw new Error("CV not found");
             }
 
             const data = await response.json();
-            const normalized = normalizeCvDataShape(data);
-            setCvData(normalized);
-            setReviewMarkers({});
-            setAiReviewState((prev) => ({ ...prev, status: "idle", error: "", data: null }));
-            alert("CV loaded!");
+            loadCvData(data);
         } catch (err) {
+            if (requestedUserId === DEMO_CV_USER_ID) {
+                loadCvData(getDemoCvData(), "Demo CV loaded!");
+                return;
+            }
             alert(`Error loading CV: ${err.message}`);
         }
     };
