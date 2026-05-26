@@ -99,13 +99,17 @@ const getValidEducationEntries = (education) =>
             .some((field) => hasText(stripHtml(field || "")))
     );
 
-const renderSkillsList = (skills) => {
+const renderSkillsList = (skills, template = "A") => {
     const validSkills = normalizeArray(skills)
         .map((skill) => escapeHtml(skill))
         .filter(Boolean);
 
     if (validSkills.length === 0) {
         return "";
+    }
+
+    if (template === "C") {
+        return `<div class="entry-block preview-text-block">${validSkills.join(", ")}</div>`;
     }
 
     return `<div class="entry-block"><ul class="preview-list">${validSkills
@@ -155,7 +159,7 @@ const renderEducationEntries = (education) => {
         .join("");
 };
 
-const renderSectionHtml = (sectionId, cvData = {}) => {
+const renderSectionHtml = (sectionId, cvData = {}, template = "A") => {
     if (sectionId === "personal") {
         const rows = [
             { label: "Name", value: cvData.name },
@@ -180,7 +184,7 @@ const renderSectionHtml = (sectionId, cvData = {}) => {
     }
 
     if (sectionId === "skills") {
-        const html = renderSkillsList(cvData.skills);
+        const html = renderSkillsList(cvData.skills, template);
         if (!html) {
             return "";
         }
@@ -300,6 +304,7 @@ const renderSectionHtml = (sectionId, cvData = {}) => {
 
 const buildTemplateStyles = (template) => {
     const isTemplateB = template === "B";
+    const isTemplateC = template === "C";
 
     const sharedStyles = `
         <style>
@@ -421,16 +426,64 @@ const buildTemplateStyles = (template) => {
         </style>
     `;
 
-    return `${sharedStyles}${isTemplateB ? templateBStyles : templateAStyles}`;
+    const templateCStyles = `
+        <style>
+            body { font-family: Arial, sans-serif; }
+            .preview-container.template-C {
+                display: block;
+                border: 1px solid #d8e3ec;
+                padding: 30px 34px;
+                line-height: 1.36;
+            }
+            .preview-container.template-C .left-column { display: none; }
+            .preview-container.template-C .right-column { width: 100%; }
+            .preview-container.template-C h3 {
+                margin: 18px 0 8px;
+                padding-bottom: 4px;
+                border-bottom: 2px solid #1a5276;
+                color: #1a5276;
+                font-size: 1.03rem;
+                font-weight: 700;
+            }
+            .preview-container.template-C .preview-personal-block {
+                text-align: center;
+                margin-bottom: 16px;
+                color: #444444;
+                font-size: 0.85rem;
+            }
+            .preview-container.template-C .preview-personal-block > div:first-child {
+                color: #1a5276;
+                font-size: 1.45rem;
+                font-weight: 700;
+                margin-bottom: 4px;
+            }
+            .preview-container.template-C .preview-personal-block > div:first-child .preview-label {
+                display: none;
+            }
+            .preview-container.template-C .preview-rich-entry,
+            .preview-container.template-C .preview-text-block,
+            .preview-container.template-C .preview-education-entry {
+                margin-bottom: 8px;
+                font-size: 0.9rem;
+            }
+            .preview-container.template-C .preview-education-dates {
+                color: #111827;
+                font-size: 0.9rem;
+                font-style: normal;
+            }
+        </style>
+    `;
+
+    return `${sharedStyles}${isTemplateC ? templateCStyles : isTemplateB ? templateBStyles : templateAStyles}`;
 };
 
 const generateHTML = (cvData, template) => {
-    const safeTemplate = template === "B" ? "B" : "A";
+    const safeTemplate = template === "C" ? "C" : template === "B" ? "B" : "A";
     const sectionLayout = normalizeSectionLayout(cvData?.sectionLayout, cvData || {});
     const ordered = getOutputSectionsForTemplate(sectionLayout, safeTemplate, cvData || {});
 
-    const leftHtml = ordered.left.map((sectionId) => renderSectionHtml(sectionId, cvData || {})).join("");
-    const rightHtml = ordered.right.map((sectionId) => renderSectionHtml(sectionId, cvData || {})).join("");
+    const leftHtml = ordered.left.map((sectionId) => renderSectionHtml(sectionId, cvData || {}, safeTemplate)).join("");
+    const rightHtml = ordered.right.map((sectionId) => renderSectionHtml(sectionId, cvData || {}, safeTemplate)).join("");
 
     return `
         <html>
@@ -518,7 +571,8 @@ const parseInlineHtmlToWordRuns = (html, options = {}) => {
             italics: styleState.italics > 0,
             underline: styleState.underline > 0 ? {} : undefined,
             color: options.color,
-            size: options.size
+            size: options.size,
+            font: options.font
         };
 
         const currentLink = linkStack[linkStack.length - 1];
@@ -554,7 +608,7 @@ const extractInnerTagContent = (html, tagName) => {
     return match ? match[1] : html;
 };
 
-const htmlToWordBlocks = (html) => {
+const htmlToWordBlocks = (html, options = {}) => {
     const source = normalizeRichHtmlForExport(html);
     if (!source || isRichTextEmpty(source)) {
         return [];
@@ -575,7 +629,7 @@ const htmlToWordBlocks = (html) => {
                 const liInner = extractInnerTagContent(li, "li");
                 blocks.push({
                     kind: "bullet",
-                    runs: parseInlineHtmlToWordRuns(liInner)
+                    runs: parseInlineHtmlToWordRuns(liInner, options)
                 });
             });
             continue;
@@ -588,7 +642,7 @@ const htmlToWordBlocks = (html) => {
                 const liInner = extractInnerTagContent(li, "li");
                 blocks.push({
                     kind: "numbered",
-                    runs: parseInlineHtmlToWordRuns(liInner)
+                    runs: parseInlineHtmlToWordRuns(liInner, options)
                 });
             });
             continue;
@@ -600,21 +654,21 @@ const htmlToWordBlocks = (html) => {
             if (!isRichTextEmpty(inner)) {
                 blocks.push({
                     kind: "paragraph",
-                    runs: parseInlineHtmlToWordRuns(inner)
+                    runs: parseInlineHtmlToWordRuns(inner, options)
                 });
             }
         }
     }
 
     if (blocks.length === 0) {
-        blocks.push({ kind: "paragraph", runs: parseInlineHtmlToWordRuns(source) });
+        blocks.push({ kind: "paragraph", runs: parseInlineHtmlToWordRuns(source, options) });
     }
 
     return blocks;
 };
 
 const quillHtmlToWordParagraphs = (html, options = {}) => {
-    const blocks = htmlToWordBlocks(html);
+    const blocks = htmlToWordBlocks(html, options);
     const paragraphs = [];
 
     blocks.forEach((block) => {
@@ -685,6 +739,56 @@ const createWordKeyValue = (label, value, options = {}) =>
     });
 
 const createWordSpacer = () => new Paragraph({ text: "", spacing: { after: 80 } });
+
+const createProfessionalSectionHeader = (text) =>
+    new Paragraph({
+        spacing: { before: 180, after: 70 },
+        keepNext: true,
+        keepLines: true,
+        border: {
+            bottom: { style: BorderStyle.SINGLE, size: 6, color: "1A5276", space: 1 }
+        },
+        children: [
+            new TextRun({
+                text,
+                bold: true,
+                size: 24,
+                color: "1A5276",
+                font: "Arial"
+            })
+        ]
+    });
+
+const createProfessionalBodyParagraph = (text) =>
+    new Paragraph({
+        spacing: { before: 30, after: 70 },
+        keepLines: true,
+        children: [
+            new TextRun({
+                text: text || "N/A",
+                size: 20,
+                font: "Arial",
+                color: "111111"
+            })
+        ]
+    });
+
+const createProfessionalSkillLine = (label, content) =>
+    new Paragraph({
+        spacing: { before: 30, after: 50 },
+        keepLines: true,
+        children: [
+            new TextRun({ text: `${label}: `, bold: true, size: 20, font: "Arial", color: "111111" }),
+            new TextRun({ text: content || "N/A", size: 20, font: "Arial", color: "111111" })
+        ]
+    });
+
+const createProfessionalFallbackParagraph = (text = "N/A") =>
+    new Paragraph({
+        spacing: { after: 80 },
+        keepLines: true,
+        children: [new TextRun({ text, size: 20, font: "Arial", color: "111111" })]
+    });
 
 const createWordFallbackParagraph = (text = "N/A") =>
     new Paragraph({
@@ -941,8 +1045,267 @@ const buildWordTemplateB = (cvData) => {
     };
 };
 
+const getProfessionalContactParts = (cvData = {}) =>
+    [cvData.email, cvData.phone]
+        .map((value) => String(value || "").trim())
+        .filter(Boolean);
+
+const addProfessionalRichEntries = (target, heading, entries) => {
+    const validEntries = normalizeArray(entries)
+        .map((entry) => normalizeRichHtmlForExport(entry))
+        .filter((entry) => !isRichTextEmpty(entry));
+
+    if (validEntries.length === 0) {
+        return;
+    }
+
+    target.push(createProfessionalSectionHeader(heading));
+    validEntries.forEach((entry, index) => {
+        quillHtmlToWordParagraphs(entry, { size: 20, font: "Arial", after: 70 }).forEach((paragraph) =>
+            target.push(paragraph)
+        );
+        if (index < validEntries.length - 1) {
+            target.push(createWordSpacer());
+        }
+    });
+};
+
+const addProfessionalSkills = (target, skills) => {
+    const entries = normalizeArray(skills).map((skill) => String(skill || "").trim()).filter(Boolean);
+    if (entries.length === 0) {
+        return;
+    }
+
+    target.push(createProfessionalSectionHeader("Key Skills"));
+    let plainSkills = [];
+    const flushPlainSkills = () => {
+        if (plainSkills.length === 0) {
+            return;
+        }
+
+        target.push(createProfessionalBodyParagraph(plainSkills.join(", ")));
+        plainSkills = [];
+    };
+
+    entries.forEach((skill) => {
+        const labelMatch = skill.match(/^([^:]{2,40}):\s*(.+)$/);
+        if (labelMatch) {
+            flushPlainSkills();
+            target.push(createProfessionalSkillLine(labelMatch[1], labelMatch[2]));
+            return;
+        }
+
+        plainSkills.push(skill);
+    });
+    flushPlainSkills();
+};
+
+const addProfessionalEducation = (target, education) => {
+    const entries = getValidEducationEntries(education);
+    if (entries.length === 0) {
+        return;
+    }
+
+    target.push(createProfessionalSectionHeader("Education"));
+    entries.forEach((edu, index) => {
+        const titleParts = [edu.degree, edu.school].map((value) => String(value || "").trim()).filter(Boolean);
+        const dateText = formatDateRange(edu.startDate, edu.endDate);
+
+        target.push(
+            new Paragraph({
+                spacing: { before: index === 0 ? 20 : 100, after: 20 },
+                keepLines: true,
+                children: [
+                    new TextRun({
+                        text: titleParts.join(" - ") || "Education",
+                        bold: true,
+                        size: 21,
+                        font: "Arial",
+                        color: "111111"
+                    })
+                ]
+            })
+        );
+
+        const metaParts = [edu.location, dateText !== "N/A" ? dateText : ""]
+            .map((value) => String(value || "").trim())
+            .filter(Boolean);
+        if (metaParts.length > 0) {
+            target.push(
+                new Paragraph({
+                    spacing: { after: 45 },
+                    keepLines: true,
+                    children: [
+                        new TextRun({
+                            text: metaParts.join(" | "),
+                            size: 20,
+                            font: "Arial",
+                            color: "111111"
+                        })
+                    ]
+                })
+            );
+        }
+
+        const normalizedAdditionalInfo = normalizeRichHtmlForExport(edu.additionalInfo || "");
+        if (normalizedAdditionalInfo && !isRichTextEmpty(normalizedAdditionalInfo)) {
+            quillHtmlToWordParagraphs(normalizedAdditionalInfo, { size: 20, font: "Arial", after: 65 }).forEach((paragraph) =>
+                target.push(paragraph)
+            );
+        }
+    });
+};
+
+const buildWordTemplateCChildren = (cvData = {}) => {
+    const children = [];
+    const name = String(cvData.name || "").trim() || "Untitled CV";
+    const contactParts = getProfessionalContactParts(cvData);
+    const linkedin = String(cvData.linkedin || "").trim();
+    const ordered = getOutputSectionsForTemplate(cvData?.sectionLayout, "C", cvData || {});
+    const sectionOrder = ordered.linear.filter((sectionId) => sectionId !== "personal");
+
+    children.push(
+        new Paragraph({
+            alignment: AlignmentType.CENTER,
+            spacing: { before: 0, after: 55 },
+            children: [
+                new TextRun({
+                    text: name,
+                    bold: true,
+                    size: 40,
+                    font: "Arial",
+                    color: "1A5276"
+                })
+            ]
+        })
+    );
+
+    if (contactParts.length > 0) {
+        children.push(
+            new Paragraph({
+                alignment: AlignmentType.CENTER,
+                spacing: { after: 45 },
+                children: [
+                    new TextRun({
+                        text: contactParts.join(" | "),
+                        size: 18,
+                        font: "Arial",
+                        color: "444444"
+                    })
+                ]
+            })
+        );
+    }
+
+    if (linkedin) {
+        children.push(
+            new Paragraph({
+                alignment: AlignmentType.CENTER,
+                spacing: { after: 120 },
+                children: [
+                    new TextRun({
+                        text: linkedin,
+                        size: 18,
+                        font: "Arial",
+                        color: "2E86C1"
+                    })
+                ]
+            })
+        );
+    }
+
+    sectionOrder.forEach((sectionId) => {
+        if (sectionId === "summary" && hasText(cvData.summary)) {
+            children.push(createProfessionalSectionHeader("Professional Summary"));
+            String(cvData.summary || "")
+                .split(/\r?\n/)
+                .map((line) => line.trim())
+                .filter(Boolean)
+                .forEach((line) => children.push(createProfessionalBodyParagraph(line)));
+            return;
+        }
+
+        if (sectionId === "skills") {
+            addProfessionalSkills(children, cvData.skills);
+            return;
+        }
+
+        if (sectionId === "projects") {
+            addProfessionalRichEntries(children, "Projects", cvData.projects);
+            return;
+        }
+
+        if (sectionId === "work") {
+            addProfessionalRichEntries(children, "Experience", cvData.workExperience);
+            return;
+        }
+
+        if (sectionId === "volunteer") {
+            addProfessionalRichEntries(children, "Volunteer Experience", cvData.volunteerExperience);
+            return;
+        }
+
+        if (sectionId === "education") {
+            addProfessionalEducation(children, cvData.education);
+            return;
+        }
+
+        if (sectionId === "certifications") {
+            addProfessionalRichEntries(children, "Certifications", cvData.certifications);
+            return;
+        }
+
+        if (sectionId === "awards") {
+            addProfessionalRichEntries(children, "Awards", cvData.awards);
+            return;
+        }
+
+        if (sectionId === "additional-info") {
+            addProfessionalRichEntries(children, "Additional Information", [cvData.additionalInfo]);
+        }
+    });
+
+    if (children.length === 1) {
+        children.push(createProfessionalFallbackParagraph("Add CV content to generate a professional document."));
+    }
+
+    return children;
+};
+
 const buildWordDocument = (cvData = {}, template = "A") => {
-    const safeTemplate = template === "B" ? "B" : "A";
+    const safeTemplate = template === "C" ? "C" : template === "B" ? "B" : "A";
+
+    if (safeTemplate === "C") {
+        return new Document({
+            numbering: {
+                config: [
+                    {
+                        reference: "cv-numbered",
+                        levels: [
+                            {
+                                level: 0,
+                                format: LevelFormat.DECIMAL,
+                                text: "%1.",
+                                alignment: AlignmentType.START
+                            }
+                        ]
+                    }
+                ]
+            },
+            sections: [
+                {
+                    properties: {
+                        page: {
+                            size: { width: 11906, height: 16838 },
+                            margin: { top: 720, right: 900, bottom: 720, left: 900 }
+                        }
+                    },
+                    children: buildWordTemplateCChildren(cvData)
+                }
+            ]
+        });
+    }
+
     const templateModel = safeTemplate === "B" ? buildWordTemplateB(cvData) : buildWordTemplateA(cvData);
 
     const leftCell = new TableCell({
@@ -1095,5 +1458,6 @@ module.exports = {
     parseInlineHtmlToWordRuns,
     buildWordDocument,
     buildWordTemplateA,
-    buildWordTemplateB
+    buildWordTemplateB,
+    buildWordTemplateCChildren
 };

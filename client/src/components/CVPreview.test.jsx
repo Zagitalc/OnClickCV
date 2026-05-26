@@ -127,6 +127,60 @@ describe("CVPreview", () => {
         expect(headingTitles).toContain("Personal Info");
     });
 
+    it("applies template C as a single-column professional ordering", () => {
+        const cvData = {
+            name: "Jane",
+            email: "jane@example.com",
+            phone: "123",
+            linkedin: "linkedin.com/in/jane",
+            summary: "Senior engineer",
+            workExperience: ["<p>Built systems</p>"],
+            volunteerExperience: [],
+            education: [
+                {
+                    school: "University of York",
+                    degree: "MSc Human-Computer Interaction",
+                    location: "York, UK",
+                    startDate: "2016-01-01",
+                    endDate: "2017-01-01"
+                }
+            ],
+            skills: ["React", "Node.js", "Express", "PostgreSQL"],
+            projects: ["<p>Portfolio app</p>"],
+            certifications: [],
+            awards: [],
+            additionalInfo: ""
+        };
+
+        const columns = buildPreviewColumns(
+            cvData,
+            {
+                left: ["personal", "skills", "certifications", "awards"],
+                right: ["summary", "work", "volunteer", "education", "projects"],
+                editorCardOrder: []
+            },
+            "C"
+        );
+
+        expect(columns.leftBlocks).toHaveLength(0);
+        const headingTitles = columns.rightBlocks
+            .filter((block) => block.kind === "heading")
+            .map((block) => block.title);
+        expect(headingTitles[0]).toBe("Personal Info");
+        expect(headingTitles[1]).toBe("Profile Summary");
+        expect(headingTitles[2]).toBe("Skills");
+        expect(headingTitles[3]).toBe("Projects");
+        expect(headingTitles[4]).toBe("Work Experience");
+
+        const skillBlock = columns.rightBlocks.find((block) => block.sectionKey === "skills" && block.kind !== "heading");
+        expect(skillBlock.kind).toBe("text");
+        expect(skillBlock.text).toBe("React, Node.js, Express, PostgreSQL");
+        expect(skillBlock.items).toEqual(["React", "Node.js", "Express", "PostgreSQL"]);
+
+        const educationBlock = columns.rightBlocks.find((block) => block.kind === "education");
+        expect(educationBlock.education.dateRange).toBe("Jan 2016 - Jan 2017");
+    });
+
     it("omits empty optional sections from preview output", () => {
         const cvData = {
             name: "Jane",

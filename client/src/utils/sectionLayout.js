@@ -251,8 +251,19 @@ export const canDragSection = (sectionId) => {
 export const getOrderedSectionsForTemplate = (layout, template, cvData = {}) => {
     const normalized = normalizeSectionLayout(layout, cvData);
 
-    if (template === "A") {
-        const templateAPriority = [
+    if (template === "A" || template === "C") {
+        const templateAPriority = template === "C" ? [
+            "personal",
+            "summary",
+            "skills",
+            "projects",
+            "work",
+            "volunteer",
+            "education",
+            "certifications",
+            "awards",
+            "additional-info"
+        ] : [
             "personal",
             "summary",
             "skills",

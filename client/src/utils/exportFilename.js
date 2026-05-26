@@ -66,7 +66,7 @@ export const sanitizeFilenameBase = (input = "") => {
 export const buildFilenameSuggestions = (cvData = {}, template = "A", date = new Date()) => {
     const namePart = sanitizeFilenameBase(cvData.name || "Candidate");
     const rolePart = sanitizeFilenameBase(deriveRoleFromCvData(cvData));
-    const templatePart = sanitizeFilenameBase(template === "B" ? "TemplateB" : "TemplateA");
+    const templatePart = sanitizeFilenameBase(template === "C" ? "ProfessionalDOCX" : template === "B" ? "TemplateB" : "TemplateA");
     const datePart = formatDatePart(date);
 
     const suggestions = [
@@ -83,4 +83,3 @@ export const resolveExportFilename = (baseName = "", format = "pdf") => {
     const ext = String(format).toLowerCase() === "word" ? "docx" : "pdf";
     return `${safeBase}.${ext}`;
 };
-

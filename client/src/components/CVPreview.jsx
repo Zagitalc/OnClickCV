@@ -2,6 +2,7 @@ import React, { useLayoutEffect, useMemo, useRef, useState } from "react";
 import { getOutputSectionsForTemplate } from "../utils/sectionLayout";
 import "./../templates/templateA.css";
 import "./../templates/TemplateB.css";
+import "./../templates/TemplateC.css";
 
 export const A4_PAGE_WIDTH_PX = 794;
 export const A4_PAGE_HEIGHT_PX = 1123;
@@ -142,7 +143,7 @@ export const splitRichHtmlSegments = (html = "") => {
     return segments.length > 0 ? segments : [normalized];
 };
 
-const buildSectionBlocks = (cvData, nextId) => {
+const buildSectionBlocks = (cvData, nextId, template = "A") => {
     const {
         name,
         email,
@@ -237,8 +238,9 @@ const buildSectionBlocks = (cvData, nextId) => {
                   {
                       id: nextId("skills-content"),
                       sectionKey: "skills",
-                      kind: "list",
-                      items: validSkills
+                      kind: template === "C" ? "text" : "list",
+                      items: validSkills,
+                      text: template === "C" ? validSkills.join(", ") : ""
                   }
               ]
             : [])
@@ -305,7 +307,7 @@ const buildSectionBlocks = (cvData, nextId) => {
 export const buildPreviewColumns = (cvData, sectionLayout, template) => {
     let blockId = 0;
     const nextId = (prefix) => `${prefix}-${blockId++}`;
-    const sectionBlocks = buildSectionBlocks(cvData, nextId);
+    const sectionBlocks = buildSectionBlocks(cvData, nextId, template);
     const ordered = getOutputSectionsForTemplate(sectionLayout, template, cvData);
 
     const leftBlocks = [];
@@ -490,7 +492,7 @@ const renderBlockList = (blocks) =>
     ));
 
 const CVPreview = ({ cvData, sectionLayout, template, onLayoutMetricsChange }) => {
-    const safeTemplate = template === "B" ? "B" : "A";
+    const safeTemplate = template === "C" ? "C" : template === "B" ? "B" : "A";
     const measurementRef = useRef(null);
     const metricsSignatureRef = useRef("");
 

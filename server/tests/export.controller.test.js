@@ -10,7 +10,8 @@ const {
     quillHtmlToWordParagraphs,
     buildWordDocument,
     buildWordTemplateA,
-    buildWordTemplateB
+    buildWordTemplateB,
+    buildWordTemplateCChildren
 } = require("../controllers/exportController");
 
 describe("exportController helpers", () => {
@@ -45,6 +46,45 @@ describe("exportController helpers", () => {
 
         expect(css).toContain("grid-template-columns: 1fr 2.5fr");
         expect(css).toContain("linear-gradient(180deg, #1f3b63 0%, #11243f 100%)");
+    });
+
+    it("builds template C styles with the professional single-column layout", () => {
+        const css = buildTemplateStyles("C");
+
+        expect(css).toContain("preview-container.template-C");
+        expect(css).toContain("border-bottom: 2px solid #1a5276");
+        expect(css).toContain("left-column { display: none; }");
+        expect(css).toContain("font-style: normal");
+    });
+
+    it("generates template C HTML with compact skills and normalized education dates", () => {
+        const html = generateHTML(
+            {
+                name: "Jane Doe",
+                email: "jane@example.com",
+                summary: "Full-stack developer",
+                skills: ["React", "Node.js", "Express", "PostgreSQL"],
+                education: [
+                    {
+                        degree: "MSc Human-Computer Interaction",
+                        school: "University of York",
+                        location: "York, UK",
+                        startDate: "2016-01-01",
+                        endDate: "2017-01-01"
+                    }
+                ],
+                sectionLayout: {
+                    left: ["personal", "skills"],
+                    right: ["summary", "education"],
+                    editorCardOrder: []
+                }
+            },
+            "C"
+        );
+
+        expect(html).toContain("React, Node.js, Express, PostgreSQL");
+        expect(html).not.toContain('<ul class="preview-list"><li>React</li>');
+        expect(html).toContain("Jan 2016 - Jan 2017");
     });
 
     it("generates template B HTML with personal, volunteer, and list sections", () => {
@@ -140,6 +180,34 @@ describe("exportController helpers", () => {
         expect(doc).toBeDefined();
         expect(doc.documentWrapper).toBeDefined();
         expect(doc.documentWrapper.document).toBeDefined();
+    });
+
+    it("builds professional template C word children with a centered name and sections", () => {
+        const children = buildWordTemplateCChildren({
+            name: "Long Hang Chung",
+            email: "long@example.com",
+            phone: "123",
+            linkedin: "linkedin.com/in/long",
+            summary: "Full-stack developer.",
+            skills: ["Frontend: React, Vite", "Node.js", "Express", "PostgreSQL"],
+            projects: ["<p><strong>Shelf Nudge</strong></p><ul><li>Built analytics dashboard.</li></ul>"],
+            education: [
+                {
+                    degree: "BSc Computer Science",
+                    school: "Durham University",
+                    startDate: "2021-10-01",
+                    endDate: "2024-07-01"
+                }
+            ],
+            sectionLayout: {
+                left: ["personal", "skills"],
+                right: ["summary", "projects", "education"],
+                editorCardOrder: []
+            }
+        });
+
+        expect(children.length).toBeGreaterThan(5);
+        expect(buildWordDocument({ name: "Long", skills: ["React"], education: [{ school: "Durham" }] }, "C")).toBeDefined();
     });
 
     it("generates template A HTML with personal first and skills below summary", () => {

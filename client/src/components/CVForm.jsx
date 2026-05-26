@@ -9,7 +9,8 @@ import "react-quill/dist/quill.snow.css";
 
 const FALLBACK_TEMPLATE_OPTIONS = [
     { value: "A", label: "Template A (Clean)" },
-    { value: "B", label: "Template B (Modern Sidebar)" }
+    { value: "B", label: "Template B (Modern Sidebar)" },
+    { value: "C", label: "Template C (Professional DOCX)" }
 ];
 
 const isRichTextEmpty = (value) => !value || value === "<p><br></p>" || value.trim() === "";
@@ -810,7 +811,7 @@ const CVForm = ({
                             {isExporting && exportingFormat === "pdf" ? "Generating PDF..." : "Export PDF"}
                         </button>
                         <button type="button" onClick={() => onExport("word", exportFileBaseName)} disabled={isExporting} className="primary-btn">
-                            {isExporting && exportingFormat === "word" ? "Generating Word..." : "Export Word"}
+                            {isExporting && exportingFormat === "word" ? "Generating DOCX..." : "Download DOCX"}
                         </button>
                     </div>
                     {exportError ? <div className="form-error">{exportError}</div> : null}

@@ -1,0 +1,82 @@
+.preview-container.template-C {
+    display: block;
+    border: 1px solid #d8e3ec;
+    padding: 30px 34px;
+    font-family: Arial, sans-serif;
+    color: #111827;
+    line-height: 1.36;
+}
+
+.preview-container.template-C .left-column {
+    display: none;
+}
+
+.preview-container.template-C .right-column {
+    width: 100%;
+}
+
+.preview-container.template-C h3 {
+    margin: 18px 0 8px;
+    padding-bottom: 4px;
+    border-bottom: 2px solid #1a5276;
+    color: #1a5276;
+    font-size: 1.03rem;
+    font-weight: 700;
+    letter-spacing: 0;
+}
+
+.preview-container.template-C .preview-block-wrapper:first-child h3 {
+    margin-top: 0;
+}
+
+.preview-container.template-C .preview-personal-block {
+    text-align: center;
+    margin-bottom: 16px;
+    color: #444444;
+    font-size: 0.85rem;
+}
+
+.preview-container.template-C .preview-personal-block > div:first-child {
+    color: #1a5276;
+    font-size: 1.45rem;
+    font-weight: 700;
+    margin-bottom: 4px;
+}
+
+.preview-container.template-C .preview-personal-block > div:first-child .preview-label {
+    display: none;
+}
+
+.preview-container.template-C .preview-label {
+    font-weight: 700;
+}
+
+.preview-container.template-C .preview-list {
+    margin: 0 0 8px;
+    padding-left: 18px;
+}
+
+.preview-container.template-C .preview-rich-entry,
+.preview-container.template-C .preview-text-block,
+.preview-container.template-C .preview-education-entry {
+    margin-bottom: 8px;
+    font-size: 0.9rem;
+}
+
+.preview-container.template-C .preview-rich-entry p,
+.preview-container.template-C .preview-rich-entry ul,
+.preview-container.template-C .preview-rich-entry ol {
+    margin-top: 0;
+    margin-bottom: 6px;
+}
+
+.preview-container.template-C .preview-education-school {
+    font-weight: 700;
+}
+
+.preview-container.template-C .preview-education-dates {
+    color: #111827;
+    font-size: 0.9rem;
+    font-style: normal;
+    margin: 2px 0 6px;
+}
