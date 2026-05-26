@@ -41,6 +41,7 @@ const cors = require("cors");
 const exportRoutes = require("./routes/exportRoutes");
 const cvRoutes = require("./routes/cvRoutes");
 const aiRoutes = require("./routes/aiRoutes");
+const importRoutes = require("./routes/importRoutes");
 const connectDB = require("./db");
 
 const app = express();
@@ -51,6 +52,7 @@ app.use(express.json());
 app.use("/api/export", exportRoutes);
 app.use("/api/cv", cvRoutes);
 app.use("/api/ai", aiRoutes);
+app.use("/api/import", importRoutes);
 
 const clientBuildPath = path.join(__dirname, "..", "client", "build");
 if (process.env.NODE_ENV === "production") {

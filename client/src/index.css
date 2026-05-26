@@ -369,6 +369,12 @@ body {
     color: var(--text-secondary);
 }
 
+.stack-dashboard-actions {
+    display: flex;
+    align-items: flex-end;
+    gap: 12px;
+}
+
 .cv-section-card {
     border: 1px solid var(--border-color);
     border-radius: 14px;
@@ -896,6 +902,24 @@ body {
     transition: background-color 0.2s ease;
 }
 
+.secondary-btn {
+    border: 1px solid var(--border-color);
+    background: var(--bg-muted);
+    color: var(--text-primary);
+    border-radius: 999px;
+    padding: 10px 16px;
+    font-size: 0.84rem;
+    font-weight: 800;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: border-color 0.2s ease, background-color 0.2s ease;
+}
+
+.secondary-btn:hover {
+    border-color: var(--btn-primary);
+    background: color-mix(in srgb, var(--btn-primary) 8%, var(--bg-panel));
+}
+
 .primary-btn:hover,
 .add-btn:hover {
     background: var(--btn-primary-hover);
@@ -1185,6 +1209,127 @@ body {
     flex: 1;
     overflow: auto;
     padding: 16px 10px 10px;
+}
+
+.import-modal-root {
+    position: fixed;
+    inset: 0;
+    z-index: 130;
+    background: rgba(7, 15, 36, 0.58);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 18px;
+}
+
+.import-modal-panel {
+    width: min(900px, 100%);
+    max-height: min(92vh, 920px);
+    background: var(--bg-panel);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+    border-radius: 22px;
+    box-shadow: 0 24px 70px rgba(7, 15, 36, 0.32);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.import-modal-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 18px 20px;
+    border-bottom: 1px solid var(--border-color);
+    background: color-mix(in srgb, var(--bg-muted) 72%, var(--bg-panel));
+}
+
+.import-modal-header h2 {
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: 800;
+}
+
+.import-modal-header p {
+    margin: 4px 0 0;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+.import-modal-body {
+    padding: 18px 20px;
+    overflow: auto;
+}
+
+.import-textarea {
+    min-height: 260px;
+    resize: vertical;
+}
+
+.import-limitations,
+.import-note,
+.import-warning,
+.import-confirm-warning {
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 10px 12px;
+    font-size: 0.86rem;
+    color: var(--text-secondary);
+    background: color-mix(in srgb, var(--bg-muted) 78%, var(--bg-panel));
+}
+
+.import-warning,
+.import-confirm-warning {
+    border-color: color-mix(in srgb, var(--warning) 50%, var(--border-color));
+    color: var(--text-primary);
+}
+
+.parsed-cv-review {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.review-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.review-detected-card,
+.parsed-section-list section {
+    border: 1px solid var(--border-color);
+    border-radius: 14px;
+    background: var(--bg-panel);
+    padding: 12px;
+}
+
+.review-detected-card h4,
+.parsed-section-list h4 {
+    margin: 0 0 8px;
+    font-size: 0.92rem;
+    font-weight: 800;
+}
+
+.review-detected-card ul {
+    margin: 0;
+    padding-left: 18px;
+    color: var(--text-secondary);
+}
+
+.review-detected-card p,
+.parsed-section-list p {
+    margin: 0;
+    color: var(--text-secondary);
+    font-size: 0.88rem;
+    line-height: 1.5;
+}
+
+.parsed-section-list {
+    display: grid;
+    gap: 10px;
 }
 
 .preview-modal-filename {

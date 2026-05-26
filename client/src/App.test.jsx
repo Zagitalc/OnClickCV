@@ -1,7 +1,7 @@
 import React, { act } from "react";
 import { createRoot } from "react-dom/client";
 import { Simulate } from "react-dom/test-utils";
-import App from "./App";
+import App, { mergeParsedCvData } from "./App";
 import { consumeSse } from "./utils/aiStream";
 
 jest.mock("./utils/aiStream", () => ({
@@ -27,6 +27,9 @@ jest.mock("./components/CVForm", () => (props) => (
         </button>
         <button type="button" onClick={() => props.onLoad("demo_user")}>
             Mock Load Demo
+        </button>
+        <button type="button" onClick={() => props.onOpenImport()}>
+            Mock Import Existing CV
         </button>
         <span>{(props.exportFileSuggestions || []).join("|")}</span>
     </div>
@@ -74,6 +77,33 @@ describe("App", () => {
         });
 
         expect(container.querySelector('[data-testid="preview-panel"]')).not.toBeNull();
+    });
+
+    it("mergeParsedCvData keeps existing values when parsed fields are empty", () => {
+        const merged = mergeParsedCvData(
+            {
+                name: "Current Name",
+                email: "current@example.com",
+                summary: "Current summary",
+                skills: ["Current Skill"],
+                projects: ["<p>Current Project</p>"],
+                sectionLayout: { left: ["personal"], right: ["summary"], editorCardOrder: [] }
+            },
+            {
+                name: "Imported Name",
+                email: "",
+                summary: "",
+                skills: [],
+                projects: ["<p>Imported Project</p>"]
+            }
+        );
+
+        expect(merged.name).toBe("Imported Name");
+        expect(merged.email).toBe("current@example.com");
+        expect(merged.summary).toBe("Current summary");
+        expect(merged.skills).toEqual(["Current Skill"]);
+        expect(merged.projects).toEqual(["<p>Imported Project</p>"]);
+        expect(merged.sectionLayout).toEqual({ left: ["personal"], right: ["summary"], editorCardOrder: [] });
     });
 
     it("switches mobile bottom-nav between stack and preview views", () => {
@@ -161,6 +191,136 @@ describe("App", () => {
 
         expect(window.alert).toHaveBeenCalledWith("Demo CV loaded!");
         expect(container.textContent).toContain("Maya_Patel_CV");
+    });
+
+    it("opens import modal, parses text, and shows detected review sections", async () => {
+        global.fetch = jest.fn().mockResolvedValueOnce({
+            ok: true,
+            json: async () => ({
+                cvData: {
+                    name: "Imported Person",
+                    summary: "Imported summary",
+                    skills: ["React", "Node.js"],
+                    projects: ["<p>Shelf Nudge</p>"],
+                    workExperience: [],
+                    volunteerExperience: [],
+                    education: [],
+                    certifications: [],
+                    awards: [],
+                    additionalInfo: ""
+                },
+                warnings: ["This import is a first draft. Please review the detected sections before exporting."]
+            })
+        });
+
+        act(() => {
+            root.render(<App />);
+        });
+
+        const importBtn = Array.from(container.querySelectorAll("button")).find(
+            (btn) => btn.textContent === "Mock Import Existing CV"
+        );
+        act(() => {
+            Simulate.click(importBtn);
+        });
+
+        expect(container.textContent).toContain("Import Existing CV");
+        const textarea = container.querySelector('textarea[aria-label="Paste CV text"]');
+        act(() => {
+            Simulate.change(textarea, { target: { value: "Imported CV text" } });
+        });
+
+        const parseBtn = Array.from(container.querySelectorAll("button")).find((btn) => btn.textContent === "Parse CV");
+        await act(async () => {
+            Simulate.click(parseBtn);
+        });
+
+        expect(global.fetch).toHaveBeenCalledWith(
+            expect.stringContaining("/api/import/cv-text"),
+            expect.objectContaining({
+                method: "POST",
+                body: JSON.stringify({ text: "Imported CV text" })
+            })
+        );
+        expect(container.textContent).toContain("Detected:");
+        expect(container.textContent).toContain("✓ Summary");
+        expect(container.textContent).toContain("✓ Skills");
+        expect(container.textContent).toContain("Not detected:");
+        expect(container.textContent).toContain("- Awards");
+        expect(container.textContent).toContain("Import Detected Sections");
+    });
+
+    it("imports detected non-empty fields only after confirmation", async () => {
+        global.fetch = jest.fn().mockResolvedValueOnce({
+            ok: true,
+            json: async () => ({
+                cvData: {
+                    name: "Imported Person",
+                    summary: "Imported summary",
+                    skills: ["React"],
+                    projects: [],
+                    workExperience: [],
+                    volunteerExperience: [],
+                    education: [],
+                    certifications: [],
+                    awards: [],
+                    additionalInfo: ""
+                },
+                warnings: []
+            })
+        });
+
+        act(() => {
+            root.render(<App />);
+        });
+
+        act(() => {
+            Simulate.click(
+                Array.from(container.querySelectorAll("button")).find(
+                    (btn) => btn.textContent === "Mock Import Existing CV"
+                )
+            );
+        });
+        act(() => {
+            Simulate.change(container.querySelector('textarea[aria-label="Paste CV text"]'), {
+                target: { value: "Imported CV text" }
+            });
+        });
+        await act(async () => {
+            Simulate.click(Array.from(container.querySelectorAll("button")).find((btn) => btn.textContent === "Parse CV"));
+        });
+        await act(async () => {
+            Simulate.click(
+                Array.from(container.querySelectorAll("button")).find(
+                    (btn) => btn.textContent === "Import Detected Sections"
+                )
+            );
+        });
+
+        expect(container.textContent).toContain("Imported_Person_CV");
+        expect(container.querySelector('[aria-label="Import existing CV"]')).toBeNull();
+    });
+
+    it("closes import modal without changing builder data when cancelled", async () => {
+        act(() => {
+            root.render(<App />);
+        });
+        const before = container.textContent;
+
+        act(() => {
+            Simulate.click(
+                Array.from(container.querySelectorAll("button")).find(
+                    (btn) => btn.textContent === "Mock Import Existing CV"
+                )
+            );
+        });
+        act(() => {
+            Simulate.click(Array.from(container.querySelectorAll("button")).find((btn) => btn.textContent === "Cancel"));
+        });
+
+        expect(container.textContent).not.toContain("Paste plain CV text");
+        expect(container.textContent).toContain("Mock CV Form");
+        expect(container.textContent).toContain(before.match(/CV_TemplateA_[0-9-]+/)?.[0] || "TemplateA");
     });
 
     it("switches desktop right panel between preview and AI review when AI is enabled", () => {

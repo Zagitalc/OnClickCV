@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import CVForm from "./components/CVForm";
 import CVPreview from "./components/CVPreview";
+import CVImportModal from "./components/CVImportModal";
 import AIReviewPanel from "./components/AIReviewPanel";
 import AIReviewModal from "./components/AIReviewModal";
 import MobileSpeedDial from "./components/MobileSpeedDial";
@@ -119,6 +120,38 @@ const withSuggestionStatuses = (reviewData = {}, cvData = {}) => ({
     topFixes: (reviewData.topFixes || []).map((fix, index) => normalizeSuggestionForClient(fix, cvData, index))
 });
 
+const hasNonEmptyText = (value) => String(value || "").trim().length > 0;
+const hasNonEmptyArray = (value) => Array.isArray(value) && value.length > 0;
+
+const mergeParsedCvData = (current = {}, parsed = {}) => {
+    const normalizedParsed = normalizeCvDataShape(parsed);
+    return {
+        ...current,
+        name: hasNonEmptyText(normalizedParsed.name) ? normalizedParsed.name : current.name,
+        email: hasNonEmptyText(normalizedParsed.email) ? normalizedParsed.email : current.email,
+        phone: hasNonEmptyText(normalizedParsed.phone) ? normalizedParsed.phone : current.phone,
+        linkedin: hasNonEmptyText(normalizedParsed.linkedin) ? normalizedParsed.linkedin : current.linkedin,
+        summary: hasNonEmptyText(normalizedParsed.summary) ? normalizedParsed.summary : current.summary,
+        skills: hasNonEmptyArray(normalizedParsed.skills) ? normalizedParsed.skills : current.skills,
+        projects: hasNonEmptyArray(normalizedParsed.projects) ? normalizedParsed.projects : current.projects,
+        workExperience: hasNonEmptyArray(normalizedParsed.workExperience)
+            ? normalizedParsed.workExperience
+            : current.workExperience,
+        volunteerExperience: hasNonEmptyArray(normalizedParsed.volunteerExperience)
+            ? normalizedParsed.volunteerExperience
+            : current.volunteerExperience,
+        education: hasNonEmptyArray(normalizedParsed.education) ? normalizedParsed.education : current.education,
+        certifications: hasNonEmptyArray(normalizedParsed.certifications)
+            ? normalizedParsed.certifications
+            : current.certifications,
+        awards: hasNonEmptyArray(normalizedParsed.awards) ? normalizedParsed.awards : current.awards,
+        additionalInfo: hasNonEmptyText(normalizedParsed.additionalInfo)
+            ? normalizedParsed.additionalInfo
+            : current.additionalInfo,
+        sectionLayout: current.sectionLayout
+    };
+};
+
 const buildSectionMarkers = (suggestions = []) => {
     const grouped = {};
     suggestions.forEach((suggestion) => {
@@ -158,6 +191,13 @@ function App() {
         pageContentHeight: 1075
     });
     const [reviewMarkers, setReviewMarkers] = useState({});
+    const [showImportModal, setShowImportModal] = useState(false);
+    const [importState, setImportState] = useState({
+        status: "idle",
+        error: "",
+        parsedCv: null,
+        warnings: []
+    });
     const [activeStreamController, setActiveStreamController] = useState(null);
     const [aiReviewState, setAiReviewState] = useState({
         status: "idle",
@@ -310,6 +350,58 @@ function App() {
             alert(`Error loading CV: ${err.message}`);
         }
     };
+
+    const closeImportModal = useCallback(() => {
+        setShowImportModal(false);
+        setImportState({
+            status: "idle",
+            error: "",
+            parsedCv: null,
+            warnings: []
+        });
+    }, []);
+
+    const handleParseCvImport = useCallback(async (text) => {
+        setImportState((prev) => ({
+            ...prev,
+            status: "loading",
+            error: "",
+            parsedCv: null,
+            warnings: []
+        }));
+
+        try {
+            const response = await fetch(apiUrl("/api/import/cv-text"), {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ text })
+            });
+            const data = await response.json().catch(() => ({}));
+
+            if (!response.ok) {
+                throw new Error(data?.error || "Failed to parse CV text.");
+            }
+
+            setImportState({
+                status: "ready",
+                error: "",
+                parsedCv: normalizeCvDataShape(data.cvData || {}),
+                warnings: Array.isArray(data.warnings) ? data.warnings : []
+            });
+        } catch (error) {
+            setImportState({
+                status: "error",
+                error: error.message || "Failed to parse CV text.",
+                parsedCv: null,
+                warnings: []
+            });
+        }
+    }, []);
+
+    const handleConfirmCvImport = useCallback(() => {
+        setCvData((current) => mergeParsedCvData(current, importState.parsedCv || {}));
+        closeImportModal();
+    }, [closeImportModal, importState.parsedCv]);
 
     const handleLayoutMetricsChange = useCallback((metrics) => {
         setLayoutMetrics(metrics);
@@ -645,6 +737,7 @@ function App() {
                                 reviewMarkers={reviewMarkers}
                                 onOpenAIReview={openAIReview}
                                 aiReviewStatus={aiReviewState.status}
+                                onOpenImport={() => setShowImportModal(true)}
                             />
                         </div>
                     ) : null}
@@ -738,8 +831,19 @@ function App() {
                     onApplyAll={handleApplyAllSuggestions}
                 />
             </AIReviewModal>
+            <CVImportModal
+                isOpen={showImportModal}
+                onClose={closeImportModal}
+                onParse={handleParseCvImport}
+                onConfirm={handleConfirmCvImport}
+                parsedCv={importState.parsedCv}
+                warnings={importState.warnings}
+                status={importState.status}
+                error={importState.error}
+            />
         </div>
     );
 }
 
 export default App;
+export { mergeParsedCvData, normalizeCvDataShape };

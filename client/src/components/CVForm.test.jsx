@@ -39,7 +39,7 @@ const templateOptions = [
     { value: "B", label: "Template B (Modern Sidebar)" }
 ];
 
-const FormHarness = ({ layoutMetrics, onExport = () => {}, reviewMarkers = {} }) => {
+const FormHarness = ({ layoutMetrics, onExport = () => {}, reviewMarkers = {}, onOpenImport = () => {} }) => {
     const [cvData, setCvData] = useState(baseCvData);
     const [exportName, setExportName] = useState("JaneDoe_Resume_TemplateA_2026-02-17");
 
@@ -77,6 +77,7 @@ const FormHarness = ({ layoutMetrics, onExport = () => {}, reviewMarkers = {} })
             reviewMarkers={reviewMarkers}
             onOpenAIReview={() => {}}
             aiReviewStatus="idle"
+            onOpenImport={onOpenImport}
         />
     );
 };
@@ -159,6 +160,26 @@ describe("CVForm", () => {
             (node) => node.textContent === "React"
         );
         expect(removedChip).toBeUndefined();
+    });
+
+    it("renders the import button and opens the import flow", () => {
+        const onOpenImport = jest.fn();
+        act(() => {
+            root.unmount();
+            root = createRoot(container);
+            root.render(<FormHarness onOpenImport={onOpenImport} />);
+        });
+
+        const importButton = Array.from(container.querySelectorAll("button")).find(
+            (btn) => btn.textContent === "Import Existing CV"
+        );
+        expect(importButton).toBeTruthy();
+
+        act(() => {
+            Simulate.click(importButton);
+        });
+
+        expect(onOpenImport).toHaveBeenCalled();
     });
 
     it("shows live summary word counter", () => {
