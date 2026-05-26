@@ -203,10 +203,6 @@ body {
     color: #111111 !important;
 }
 
-.cv-preview-paper * {
-    color: inherit;
-}
-
 .preview-root,
 .preview-container,
 .left-column,
@@ -1714,18 +1710,18 @@ body {
 
 .entry-list-item,
 .education-card {
-    background: rgba(255, 255, 255, 0.5);
+    background: rgba(255, 255, 255, 0.86);
     border-color: rgba(13, 27, 66, 0.14);
 }
 
 .section-editor-overlay {
-    background: rgba(255, 255, 255, 0.92);
+    background: rgba(248, 250, 252, 0.98);
     backdrop-filter: blur(16px);
     color: #0d1b42;
 }
 
 .section-editor-header {
-    background: rgba(255, 255, 255, 0.96);
+    background: rgba(255, 255, 255, 0.98);
 }
 
 .section-editor-header h3 {
@@ -1761,7 +1757,7 @@ body {
 
 .section-editor-overlay .cv-section-body .ql-toolbar,
 .section-editor-overlay .cv-section-body .ql-container {
-    background: rgba(255, 255, 255, 0.95);
+    background: rgba(255, 255, 255, 0.98);
     border-color: rgba(13, 27, 66, 0.18);
     color: #0d1b42;
 }
@@ -1829,6 +1825,295 @@ body {
 .preview-page {
     border: 1px solid rgba(255, 255, 255, 0.35);
     box-shadow: 0 24px 60px rgba(7, 18, 48, 0.48);
+}
+
+/* Glass contrast containment: light cards and document surfaces must not inherit white text. */
+.cv-section-card,
+.cv-section-card .cv-section-body,
+.entry-list-item,
+.education-card,
+.entry-rich-text,
+.skill-chip {
+    color: #0f172a;
+}
+
+.cv-section-card .form-label,
+.import-modal-panel .form-label,
+.preview-modal-panel .form-label,
+.cv-section-card .form-meta,
+.import-modal-panel .form-meta,
+.preview-modal-panel .form-meta,
+.cv-section-card .education-dates,
+.cv-section-card .card-complex-hint,
+.cv-section-card .filename-suggestion-chip {
+    color: #475569;
+}
+
+.cv-section-card .form-input,
+.cv-section-card .form-textarea,
+.cv-section-card .form-select,
+.section-editor-overlay .form-input,
+.section-editor-overlay .form-textarea,
+.section-editor-overlay .form-select,
+.import-modal-panel .form-input,
+.import-modal-panel .form-textarea,
+.import-modal-panel .form-select,
+.preview-modal-panel .form-input,
+.preview-modal-panel .form-textarea,
+.preview-modal-panel .form-select {
+    background: rgba(255, 255, 255, 0.92);
+    border-color: rgba(15, 23, 42, 0.18);
+    color: #0f172a;
+}
+
+.cv-section-card .form-input::placeholder,
+.cv-section-card .form-textarea::placeholder,
+.section-editor-overlay .form-input::placeholder,
+.section-editor-overlay .form-textarea::placeholder,
+.import-modal-panel .form-input::placeholder,
+.import-modal-panel .form-textarea::placeholder,
+.preview-modal-panel .form-input::placeholder,
+.preview-modal-panel .form-textarea::placeholder {
+    color: #64748b;
+}
+
+.import-modal-panel,
+.import-modal-header,
+.import-modal-body,
+.parsed-cv-review,
+.review-detected-card,
+.parsed-section-list section {
+    color: #0f172a;
+}
+
+.import-modal-panel {
+    background: rgba(248, 250, 252, 0.98);
+    border-color: rgba(226, 232, 240, 0.88);
+}
+
+.import-modal-header {
+    background: rgba(255, 255, 255, 0.96);
+    border-bottom-color: rgba(15, 23, 42, 0.12);
+}
+
+.import-modal-header h2,
+.review-detected-card h4,
+.parsed-section-list h4 {
+    color: #0f172a;
+}
+
+.import-modal-header p,
+.import-limitations,
+.import-note,
+.review-detected-card ul,
+.review-detected-card p,
+.parsed-section-list p {
+    color: #475569;
+}
+
+.import-limitations,
+.import-note,
+.import-warning,
+.import-confirm-warning,
+.review-detected-card,
+.parsed-section-list section {
+    background: rgba(255, 255, 255, 0.94);
+    border-color: rgba(15, 23, 42, 0.12);
+}
+
+.cv-section-card .ql-toolbar,
+.cv-section-card .ql-container,
+.section-editor-overlay .ql-toolbar,
+.section-editor-overlay .ql-container,
+.import-modal-panel .ql-toolbar,
+.import-modal-panel .ql-container,
+.preview-modal-panel .ql-toolbar,
+.preview-modal-panel .ql-container {
+    background: rgba(255, 255, 255, 0.98);
+    border-color: rgba(15, 23, 42, 0.18);
+    color: #0f172a;
+}
+
+.cv-section-card .ql-container,
+.section-editor-overlay .ql-container,
+.import-modal-panel .ql-container,
+.preview-modal-panel .ql-container {
+    border-top-color: rgba(15, 23, 42, 0.12);
+}
+
+.cv-section-card .ql-editor,
+.cv-section-card .ql-editor p,
+.cv-section-card .ql-editor li,
+.section-editor-overlay .ql-editor,
+.section-editor-overlay .ql-editor p,
+.section-editor-overlay .ql-editor li,
+.import-modal-panel .ql-editor,
+.import-modal-panel .ql-editor p,
+.import-modal-panel .ql-editor li,
+.preview-modal-panel .ql-editor,
+.preview-modal-panel .ql-editor p,
+.preview-modal-panel .ql-editor li {
+    color: #0f172a;
+}
+
+.cv-section-card .ql-editor.ql-blank::before,
+.section-editor-overlay .ql-editor.ql-blank::before,
+.import-modal-panel .ql-editor.ql-blank::before,
+.preview-modal-panel .ql-editor.ql-blank::before {
+    color: #64748b;
+    opacity: 1;
+}
+
+.cv-section-card .ql-snow .ql-picker,
+.cv-section-card .ql-snow .ql-picker-label,
+.cv-section-card .ql-snow .ql-picker-item,
+.section-editor-overlay .ql-snow .ql-picker,
+.section-editor-overlay .ql-snow .ql-picker-label,
+.section-editor-overlay .ql-snow .ql-picker-item,
+.import-modal-panel .ql-snow .ql-picker,
+.import-modal-panel .ql-snow .ql-picker-label,
+.import-modal-panel .ql-snow .ql-picker-item,
+.preview-modal-panel .ql-snow .ql-picker,
+.preview-modal-panel .ql-snow .ql-picker-label,
+.preview-modal-panel .ql-snow .ql-picker-item {
+    color: #334155;
+}
+
+.cv-section-card .ql-snow .ql-stroke,
+.section-editor-overlay .ql-snow .ql-stroke,
+.import-modal-panel .ql-snow .ql-stroke,
+.preview-modal-panel .ql-snow .ql-stroke {
+    stroke: #334155;
+}
+
+.cv-section-card .ql-snow .ql-fill,
+.section-editor-overlay .ql-snow .ql-fill,
+.import-modal-panel .ql-snow .ql-fill,
+.preview-modal-panel .ql-snow .ql-fill {
+    fill: #334155;
+}
+
+.cv-section-card .ql-snow .ql-picker-label:hover,
+.cv-section-card .ql-snow .ql-picker-label.ql-active,
+.section-editor-overlay .ql-snow .ql-picker-label:hover,
+.section-editor-overlay .ql-snow .ql-picker-label.ql-active,
+.import-modal-panel .ql-snow .ql-picker-label:hover,
+.import-modal-panel .ql-snow .ql-picker-label.ql-active,
+.preview-modal-panel .ql-snow .ql-picker-label:hover,
+.preview-modal-panel .ql-snow .ql-picker-label.ql-active {
+    color: #0f172a;
+}
+
+.cv-section-card .ql-snow button:hover .ql-stroke,
+.cv-section-card .ql-snow button.ql-active .ql-stroke,
+.section-editor-overlay .ql-snow button:hover .ql-stroke,
+.section-editor-overlay .ql-snow button.ql-active .ql-stroke,
+.import-modal-panel .ql-snow button:hover .ql-stroke,
+.import-modal-panel .ql-snow button.ql-active .ql-stroke,
+.preview-modal-panel .ql-snow button:hover .ql-stroke,
+.preview-modal-panel .ql-snow button.ql-active .ql-stroke {
+    stroke: #0f172a;
+}
+
+.cv-section-card .ql-snow button:hover .ql-fill,
+.cv-section-card .ql-snow button.ql-active .ql-fill,
+.section-editor-overlay .ql-snow button:hover .ql-fill,
+.section-editor-overlay .ql-snow button.ql-active .ql-fill,
+.import-modal-panel .ql-snow button:hover .ql-fill,
+.import-modal-panel .ql-snow button.ql-active .ql-fill,
+.preview-modal-panel .ql-snow button:hover .ql-fill,
+.preview-modal-panel .ql-snow button.ql-active .ql-fill {
+    fill: #0f172a;
+}
+
+.cv-section-card .ql-snow .ql-picker-options,
+.section-editor-overlay .ql-snow .ql-picker-options,
+.import-modal-panel .ql-snow .ql-picker-options,
+.preview-modal-panel .ql-snow .ql-picker-options {
+    background: #ffffff;
+    border-color: rgba(15, 23, 42, 0.16);
+    color: #0f172a;
+}
+
+.import-warning,
+.import-confirm-warning {
+    color: #0f172a;
+    border-color: rgba(245, 158, 11, 0.5);
+}
+
+.preview-modal-panel,
+.preview-modal-body,
+.preview-modal-filename {
+    color: #0f172a;
+}
+
+.preview-modal-panel {
+    background: #f8fafc;
+}
+
+.preview-modal-header,
+.preview-modal-filename {
+    background: rgba(255, 255, 255, 0.92);
+    border-color: rgba(15, 23, 42, 0.12);
+}
+
+.preview-modal-title,
+.preview-modal-btn {
+    color: #0f172a;
+}
+
+.preview-modal-btn {
+    background: #ffffff;
+    border-color: rgba(15, 23, 42, 0.16);
+}
+
+.cv-preview-paper {
+    background: #ffffff;
+    color: #111827;
+}
+
+.cv-preview-paper.template-A .preview-text-block,
+.cv-preview-paper.template-A .preview-rich-entry,
+.cv-preview-paper.template-A .preview-rich-entry p,
+.cv-preview-paper.template-A .preview-rich-entry li,
+.cv-preview-paper.template-A .preview-education-entry,
+.cv-preview-paper.template-A .preview-list,
+.cv-preview-paper.template-A .preview-personal-block,
+.cv-preview-paper.template-C .preview-text-block,
+.cv-preview-paper.template-C .preview-rich-entry,
+.cv-preview-paper.template-C .preview-rich-entry p,
+.cv-preview-paper.template-C .preview-rich-entry li,
+.cv-preview-paper.template-C .preview-education-entry,
+.cv-preview-paper.template-C .preview-list {
+    color: #111827;
+}
+
+.cv-preview-paper.template-A .preview-empty,
+.cv-preview-paper.template-A .preview-education-dates,
+.cv-preview-paper.template-C .preview-empty {
+    color: #64748b;
+}
+
+.cv-preview-paper.template-C,
+.cv-preview-paper.template-C .preview-text-block,
+.cv-preview-paper.template-C .preview-rich-entry,
+.cv-preview-paper.template-C .preview-rich-entry p,
+.cv-preview-paper.template-C .preview-rich-entry li,
+.cv-preview-paper.template-C .preview-education-entry {
+    color: #111827;
+}
+
+.cv-preview-paper.template-C h3,
+.cv-preview-paper.template-C .preview-personal-block > div:first-child {
+    color: #1a5276;
+}
+
+.cv-preview-paper.template-C .preview-personal-block {
+    color: #444444;
+}
+
+.cv-preview-paper.template-C .preview-education-dates {
+    color: #111827;
 }
 
 .ai-modal-root {
@@ -2012,6 +2297,19 @@ body {
     font-size: 0.82rem;
     font-weight: 700;
     cursor: pointer;
+}
+
+.stack-dashboard-actions > .secondary-btn {
+    background: rgba(248, 250, 252, 0.94);
+    border-color: rgba(255, 255, 255, 0.82);
+    color: #0d1b42;
+    box-shadow: 0 10px 24px rgba(7, 18, 48, 0.2);
+}
+
+.stack-dashboard-actions > .secondary-btn:hover {
+    background: #ffffff;
+    border-color: #ffffff;
+    color: #0d1b42;
 }
 
 .text-btn {
