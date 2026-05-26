@@ -87,7 +87,8 @@ const CVForm = ({
     aiEnabled,
     reviewMarkers,
     onOpenAIReview,
-    aiReviewStatus
+    aiReviewStatus,
+    onOpenImport
 }) => {
     const [newSkill, setNewSkill] = useState("");
     const [newCert, setNewCert] = useState("");
@@ -857,22 +858,27 @@ const CVForm = ({
                     <h2 className="cv-form-title">My Resume</h2>
                     <div className="stack-subtitle">{completion.isCoreReady ? "Core ready" : "Needs core info"}</div>
                 </div>
-                <div className="stack-progress-group">
-                    <div
-                        className="stack-progress-bar"
-                        role="progressbar"
-                        aria-valuemin={0}
-                        aria-valuemax={100}
-                        aria-valuenow={completion.completionPercent}
-                    >
+                <div className="stack-dashboard-actions">
+                    <button type="button" className="secondary-btn" onClick={() => onOpenImport && onOpenImport()}>
+                        Import Existing CV
+                    </button>
+                    <div className="stack-progress-group">
                         <div
-                            className="stack-progress-fill"
-                            style={{ width: `${completion.completionPercent}%` }}
+                            className="stack-progress-bar"
+                            role="progressbar"
+                            aria-valuemin={0}
+                            aria-valuemax={100}
+                            aria-valuenow={completion.completionPercent}
                         >
-                            <span className="stack-progress-thumb" />
+                            <div
+                                className="stack-progress-fill"
+                                style={{ width: `${completion.completionPercent}%` }}
+                            >
+                                <span className="stack-progress-thumb" />
+                            </div>
                         </div>
+                        <div className="stack-progress-label">{completion.completionPercent}% Complete</div>
                     </div>
-                    <div className="stack-progress-label">{completion.completionPercent}% Complete</div>
                 </div>
             </div>
 
