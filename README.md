@@ -2,6 +2,26 @@
 
 OnClickCV is a full-stack CV builder for creating professional CVs with live preview, template switching, and export to PDF/Word.
 
+## What's New in V4 / V4.1
+
+V4 focuses on a more polished, professional CV builder workflow with a stronger DOCX output path and a safer import flow:
+
+- **Template C (Professional DOCX)**:
+  - Professional, ATS-friendly CV layout designed for clean Word export
+  - Compact comma-separated skills rendering to keep the skills section space-efficient
+  - Unified education date styling between preview and export
+- **Paste-Text CV Importer (V4.1)**:
+  - Import an existing CV by pasting plain text
+  - Rule-based parser detects common sections such as summary, skills, projects, experience, education, certifications, awards, and additional info
+  - Review-first workflow shows detected and not-detected sections before importing
+  - Empty parsed fields do not overwrite existing builder data
+- **Glass UI Contrast Polish**:
+  - Scoped contrast fixes for light cards, import modal, parsed review screen, React Quill editors, form controls, and preview surfaces
+  - Keeps the glass visual direction while ensuring modal, editor, textarea, and Template C preview text remains readable
+- **Template Safety**:
+  - Template A and Template B remain unchanged by the Template C polish
+  - Template C DOCX generation remains separate from preview-only CSS fixes
+
 ## What's New in V3.1
 
 V3.1 introduces the new glass UX system and a single, coherent AI review journey:
@@ -114,42 +134,7 @@ Important:
 - Keep `OPENAI_API_KEY` only in `server/.env` (never in `client/.env`).
 - Restart server/client after changing env files.
 
-### Step 5: Set up Tailwind CSS (Frontend)
-
-Tailwind CSS is already configured in this project. If you need to set it up again or want to understand the process, follow these steps **inside the `client` folder**:
-
-```bash
-# Install Tailwind CSS and its dependencies
-npm install -D tailwindcss postcss autoprefixer
-
-# Initialize Tailwind config files
-npx tailwindcss init -p
-```
-
-Edit `tailwind.config.js` to include:
-
-```js
-module.exports = {
-  content: [
-    "./public/index.html",
-    "./src/**/*.{js,jsx,ts,tsx}"
-  ],
-  theme: {
-    extend: {},
-  },
-  plugins: [],
-}
-```
-
-In `src/index.css`, ensure you have only:
-
-```css
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-```
-
-You can now use Tailwind utility classes throughout your React components.
+### Step 5: Open the app
 
 The backend server runs by default on `http://localhost:4000`, and the frontend runs on `http://localhost:3000`.
 
@@ -248,8 +233,9 @@ docker push zach1328/onclickcv:latest
 ## Usage
 
 - Use the **CV Form** on the left to fill out your personal information, add skills dynamically, and add multiple education entries with rich text formatting.
+- Use **Import Existing CV** to paste plain CV text, review detected sections, and import into the builder.
 - Preview your CV changes in real-time on the right side with virtual A4 pagination.
-- Export your CV as a PDF or Word document by using the export buttons at the bottom of the form.
+- Export your CV as a PDF or Word document. Template C is the recommended professional DOCX format.
 
 ## Project Structure
 
@@ -259,13 +245,18 @@ OnClickCV
 │   ├── public
 │   └── src
 │       ├── components
+│       ├── constants
+│       ├── data
 │       ├── templates
-│       ├── App.js
+│       ├── utils
+│       ├── App.jsx
 │       └── index.css
 │
 └── server
     ├── controllers
+    ├── services
     ├── routes
+    ├── scripts
     ├── package.json
     └── server.js
 ```
@@ -273,11 +264,11 @@ OnClickCV
 ## Customization
 
 - **Templates:** Customize or add your own CV templates in `client/src/templates`.
-- **Styles:** Update styles globally in `client/src/index.css` or template-specific CSS. For modern UI, use [Tailwind CSS](https://tailwindcss.com/docs/utility-first).
+- **Styles:** Update glass shell and app-level styles in `client/src/index.css`; keep template-specific layout changes in the template CSS files where possible.
 
 ## Troubleshooting
 
-- Why backend first? Frontend calls backend endpoints at `http://localhost:4000` directly (see `client/src/App.js`). If backend is not up, requests fail.
+- Why backend first? Frontend calls backend endpoints at `http://localhost:4000` directly. If backend is not up, API-backed features such as CV import, save/load, AI review, and export fail.
 - Recommended: use `npm run dev` from root so startup order is handled automatically.
 - If issues persist, verify ports (`4000` backend, `3000` frontend) are not occupied.
 
@@ -286,13 +277,14 @@ OnClickCV
 Run these from project root:
 
 ```bash
-# Client tests (targeted)
-cd client
-npm test -- --watchAll=false --runInBand src/App.test.js src/components/CVForm.test.js src/components/CVPreview.test.js
+# Client tests
+npm --prefix client test -- --runInBand
 
-# Server tests (targeted)
-cd ../server
-SKIP_DB_SETUP=1 npm test -- --runInBand tests/export.controller.test.js
+# Client production build
+npm --prefix client run build
+
+# Server tests
+npm --prefix server test
 ```
 
 ## Repo Hygiene (Avoid Leaks)
@@ -303,7 +295,7 @@ SKIP_DB_SETUP=1 npm test -- --runInBand tests/export.controller.test.js
 
 ## Dependencies Used
 
-- **Frontend:** React, React Quill (WYSIWYG Editor), Tailwind CSS, axios (for requests, optional)
+- **Frontend:** React, Vite, React Quill, plain CSS, Jest
 - **Backend:** Node.js, Express, Puppeteer (PDF generation), docx (Word generation), CORS
 
 ---
