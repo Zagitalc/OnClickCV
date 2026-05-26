@@ -99,13 +99,17 @@ const getValidEducationEntries = (education) =>
             .some((field) => hasText(stripHtml(field || "")))
     );
 
-const renderSkillsList = (skills) => {
+const renderSkillsList = (skills, template = "A") => {
     const validSkills = normalizeArray(skills)
         .map((skill) => escapeHtml(skill))
         .filter(Boolean);
 
     if (validSkills.length === 0) {
         return "";
+    }
+
+    if (template === "C") {
+        return `<div class="entry-block preview-text-block">${validSkills.join(", ")}</div>`;
     }
 
     return `<div class="entry-block"><ul class="preview-list">${validSkills
@@ -155,7 +159,7 @@ const renderEducationEntries = (education) => {
         .join("");
 };
 
-const renderSectionHtml = (sectionId, cvData = {}) => {
+const renderSectionHtml = (sectionId, cvData = {}, template = "A") => {
     if (sectionId === "personal") {
         const rows = [
             { label: "Name", value: cvData.name },
@@ -180,7 +184,7 @@ const renderSectionHtml = (sectionId, cvData = {}) => {
     }
 
     if (sectionId === "skills") {
-        const html = renderSkillsList(cvData.skills);
+        const html = renderSkillsList(cvData.skills, template);
         if (!html) {
             return "";
         }
@@ -463,9 +467,9 @@ const buildTemplateStyles = (template) => {
                 font-size: 0.9rem;
             }
             .preview-container.template-C .preview-education-dates {
-                color: #666666;
-                font-size: 0.82rem;
-                font-style: italic;
+                color: #111827;
+                font-size: 0.9rem;
+                font-style: normal;
             }
         </style>
     `;
@@ -478,8 +482,8 @@ const generateHTML = (cvData, template) => {
     const sectionLayout = normalizeSectionLayout(cvData?.sectionLayout, cvData || {});
     const ordered = getOutputSectionsForTemplate(sectionLayout, safeTemplate, cvData || {});
 
-    const leftHtml = ordered.left.map((sectionId) => renderSectionHtml(sectionId, cvData || {})).join("");
-    const rightHtml = ordered.right.map((sectionId) => renderSectionHtml(sectionId, cvData || {})).join("");
+    const leftHtml = ordered.left.map((sectionId) => renderSectionHtml(sectionId, cvData || {}, safeTemplate)).join("");
+    const rightHtml = ordered.right.map((sectionId) => renderSectionHtml(sectionId, cvData || {}, safeTemplate)).join("");
 
     return `
         <html>
@@ -1073,22 +1077,27 @@ const addProfessionalSkills = (target, skills) => {
     }
 
     target.push(createProfessionalSectionHeader("Key Skills"));
+    let plainSkills = [];
+    const flushPlainSkills = () => {
+        if (plainSkills.length === 0) {
+            return;
+        }
+
+        target.push(createProfessionalBodyParagraph(plainSkills.join(", ")));
+        plainSkills = [];
+    };
+
     entries.forEach((skill) => {
         const labelMatch = skill.match(/^([^:]{2,40}):\s*(.+)$/);
         if (labelMatch) {
+            flushPlainSkills();
             target.push(createProfessionalSkillLine(labelMatch[1], labelMatch[2]));
             return;
         }
 
-        target.push(
-            new Paragraph({
-                children: [new TextRun({ text: skill, size: 20, font: "Arial", color: "111111" })],
-                bullet: { level: 0 },
-                spacing: { after: 55 },
-                keepLines: true
-            })
-        );
+        plainSkills.push(skill);
     });
+    flushPlainSkills();
 };
 
 const addProfessionalEducation = (target, education) => {
@@ -1129,10 +1138,9 @@ const addProfessionalEducation = (target, education) => {
                     children: [
                         new TextRun({
                             text: metaParts.join(" | "),
-                            size: 19,
+                            size: 20,
                             font: "Arial",
-                            color: "666666",
-                            italics: true
+                            color: "111111"
                         })
                     ]
                 })

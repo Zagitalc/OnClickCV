@@ -136,8 +136,16 @@ describe("CVPreview", () => {
             summary: "Senior engineer",
             workExperience: ["<p>Built systems</p>"],
             volunteerExperience: [],
-            education: [],
-            skills: ["React"],
+            education: [
+                {
+                    school: "University of York",
+                    degree: "MSc Human-Computer Interaction",
+                    location: "York, UK",
+                    startDate: "2016-01-01",
+                    endDate: "2017-01-01"
+                }
+            ],
+            skills: ["React", "Node.js", "Express", "PostgreSQL"],
             projects: ["<p>Portfolio app</p>"],
             certifications: [],
             awards: [],
@@ -163,6 +171,14 @@ describe("CVPreview", () => {
         expect(headingTitles[2]).toBe("Skills");
         expect(headingTitles[3]).toBe("Projects");
         expect(headingTitles[4]).toBe("Work Experience");
+
+        const skillBlock = columns.rightBlocks.find((block) => block.sectionKey === "skills" && block.kind !== "heading");
+        expect(skillBlock.kind).toBe("text");
+        expect(skillBlock.text).toBe("React, Node.js, Express, PostgreSQL");
+        expect(skillBlock.items).toEqual(["React", "Node.js", "Express", "PostgreSQL"]);
+
+        const educationBlock = columns.rightBlocks.find((block) => block.kind === "education");
+        expect(educationBlock.education.dateRange).toBe("Jan 2016 - Jan 2017");
     });
 
     it("omits empty optional sections from preview output", () => {
