@@ -2,6 +2,7 @@ import React, { useLayoutEffect, useMemo, useRef, useState } from "react";
 import { getOutputSectionsForTemplate } from "../utils/sectionLayout";
 import "./../templates/templateA.css";
 import "./../templates/TemplateB.css";
+import "./../templates/TemplateC.css";
 
 export const A4_PAGE_WIDTH_PX = 794;
 export const A4_PAGE_HEIGHT_PX = 1123;
@@ -490,7 +491,7 @@ const renderBlockList = (blocks) =>
     ));
 
 const CVPreview = ({ cvData, sectionLayout, template, onLayoutMetricsChange }) => {
-    const safeTemplate = template === "B" ? "B" : "A";
+    const safeTemplate = template === "C" ? "C" : template === "B" ? "B" : "A";
     const measurementRef = useRef(null);
     const metricsSignatureRef = useRef("");
 

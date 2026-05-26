@@ -158,8 +158,19 @@ const normalizeSectionLayout = (layoutInput = {}, cvData = {}) => {
 const getOrderedSectionsForTemplate = (layoutInput, template = "A", cvData = {}) => {
     const normalized = normalizeSectionLayout(layoutInput, cvData);
 
-    if (template === "A") {
-        const templateAPriority = [
+    if (template === "A" || template === "C") {
+        const templateAPriority = template === "C" ? [
+            "personal",
+            "summary",
+            "skills",
+            "projects",
+            "work",
+            "volunteer",
+            "education",
+            "certifications",
+            "awards",
+            "additional-info"
+        ] : [
             "personal",
             "summary",
             "skills",

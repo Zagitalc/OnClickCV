@@ -10,7 +10,8 @@ const {
     quillHtmlToWordParagraphs,
     buildWordDocument,
     buildWordTemplateA,
-    buildWordTemplateB
+    buildWordTemplateB,
+    buildWordTemplateCChildren
 } = require("../controllers/exportController");
 
 describe("exportController helpers", () => {
@@ -45,6 +46,14 @@ describe("exportController helpers", () => {
 
         expect(css).toContain("grid-template-columns: 1fr 2.5fr");
         expect(css).toContain("linear-gradient(180deg, #1f3b63 0%, #11243f 100%)");
+    });
+
+    it("builds template C styles with the professional single-column layout", () => {
+        const css = buildTemplateStyles("C");
+
+        expect(css).toContain("preview-container.template-C");
+        expect(css).toContain("border-bottom: 2px solid #1a5276");
+        expect(css).toContain("left-column { display: none; }");
     });
 
     it("generates template B HTML with personal, volunteer, and list sections", () => {
@@ -140,6 +149,25 @@ describe("exportController helpers", () => {
         expect(doc).toBeDefined();
         expect(doc.documentWrapper).toBeDefined();
         expect(doc.documentWrapper.document).toBeDefined();
+    });
+
+    it("builds professional template C word children with a centered name and sections", () => {
+        const children = buildWordTemplateCChildren({
+            name: "Long Hang Chung",
+            email: "long@example.com",
+            phone: "123",
+            linkedin: "linkedin.com/in/long",
+            summary: "Full-stack developer.",
+            skills: ["Frontend: React, Vite", "Node.js"],
+            projects: ["<p><strong>Shelf Nudge</strong></p><ul><li>Built analytics dashboard.</li></ul>"],
+            sectionLayout: {
+                left: ["personal", "skills"],
+                right: ["summary", "projects"],
+                editorCardOrder: []
+            }
+        });
+
+        expect(children.length).toBeGreaterThan(5);
     });
 
     it("generates template A HTML with personal first and skills below summary", () => {

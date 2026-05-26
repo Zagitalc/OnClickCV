@@ -127,6 +127,44 @@ describe("CVPreview", () => {
         expect(headingTitles).toContain("Personal Info");
     });
 
+    it("applies template C as a single-column professional ordering", () => {
+        const cvData = {
+            name: "Jane",
+            email: "jane@example.com",
+            phone: "123",
+            linkedin: "linkedin.com/in/jane",
+            summary: "Senior engineer",
+            workExperience: ["<p>Built systems</p>"],
+            volunteerExperience: [],
+            education: [],
+            skills: ["React"],
+            projects: ["<p>Portfolio app</p>"],
+            certifications: [],
+            awards: [],
+            additionalInfo: ""
+        };
+
+        const columns = buildPreviewColumns(
+            cvData,
+            {
+                left: ["personal", "skills", "certifications", "awards"],
+                right: ["summary", "work", "volunteer", "education", "projects"],
+                editorCardOrder: []
+            },
+            "C"
+        );
+
+        expect(columns.leftBlocks).toHaveLength(0);
+        const headingTitles = columns.rightBlocks
+            .filter((block) => block.kind === "heading")
+            .map((block) => block.title);
+        expect(headingTitles[0]).toBe("Personal Info");
+        expect(headingTitles[1]).toBe("Profile Summary");
+        expect(headingTitles[2]).toBe("Skills");
+        expect(headingTitles[3]).toBe("Projects");
+        expect(headingTitles[4]).toBe("Work Experience");
+    });
+
     it("omits empty optional sections from preview output", () => {
         const cvData = {
             name: "Jane",
