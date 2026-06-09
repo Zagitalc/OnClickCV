@@ -38,6 +38,7 @@ loadEnvFile(path.join(__dirname, ".env"));
 
 const express = require("express");
 const cors = require("cors");
+const { rateLimit } = require("express-rate-limit");
 const exportRoutes = require("./routes/exportRoutes");
 const cvRoutes = require("./routes/cvRoutes");
 const aiRoutes = require("./routes/aiRoutes");
@@ -58,7 +59,14 @@ const clientBuildPath = path.join(__dirname, "..", "client", "build");
 if (process.env.NODE_ENV === "production") {
     app.use(express.static(clientBuildPath));
 
-    app.get("*", (req, res, next) => {
+    const clientFallbackLimiter = rateLimit({
+        windowMs: 60 * 1000,
+        limit: Number.parseInt(process.env.CLIENT_RATE_LIMIT || "120", 10),
+        standardHeaders: "draft-8",
+        legacyHeaders: false
+    });
+
+    app.get("*", clientFallbackLimiter, (req, res, next) => {
         if (req.path.startsWith("/api/")) {
             return next();
         }
