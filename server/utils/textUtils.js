@@ -1,14 +1,6 @@
-const stripHtml = (html) => {
-    if (!html || typeof html !== "string") {
-        return "";
-    }
+const { extractText } = require("./richText");
 
-    return html
-        .replace(/<[^>]*>/g, " ")
-        .replace(/&nbsp;/g, " ")
-        .replace(/\s+/g, " ")
-        .trim();
-};
+const stripHtml = (html) => extractText(typeof html === "string" ? html : "");
 
 module.exports = {
     stripHtml

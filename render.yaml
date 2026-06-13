@@ -1,0 +1,20 @@
+services:
+  - type: web
+    name: onclickcv-staging
+    runtime: docker
+    branch: v4
+    autoDeploy: true
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /api/health
+    maxShutdownDelaySeconds: 60
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: AI_REVIEW_ENABLED
+        value: "false"
+      - key: CV_PERSISTENCE_ENABLED
+        value: "false"
+      - key: VITE_AI_REVIEW_ENABLED
+        value: "false"
+      - key: VITE_CV_PERSISTENCE_ENABLED
+        value: "false"

@@ -1,5 +1,6 @@
 import React, { useLayoutEffect, useMemo, useRef, useState } from "react";
 import { getOutputSectionsForTemplate } from "../utils/sectionLayout";
+import { extractRichText, sanitizeRichHtml } from "../utils/richText";
 import "./../templates/templateA.css";
 import "./../templates/TemplateB.css";
 import "./../templates/TemplateC.css";
@@ -19,20 +20,7 @@ const escapeHtml = (value = "") =>
         .replace(/\"/g, "&quot;")
         .replace(/'/g, "&#39;");
 
-const decodeHtmlEntities = (value = "") =>
-    String(value)
-        .replace(/&nbsp;/g, " ")
-        .replace(/&amp;/g, "&")
-        .replace(/&lt;/g, "<")
-        .replace(/&gt;/g, ">")
-        .replace(/&quot;/g, '"')
-        .replace(/&#39;/g, "'")
-        .replace(/&apos;/g, "'");
-
-const stripHtmlToText = (html = "") =>
-    decodeHtmlEntities(String(html).replace(/<[^>]*>/g, " "))
-        .replace(/\s+/g, " ")
-        .trim();
+const stripHtmlToText = (html = "") => extractRichText(html);
 
 const countWords = (text = "") =>
     String(text)
@@ -41,7 +29,7 @@ const countWords = (text = "") =>
         .filter(Boolean).length;
 
 export const normalizeRichHtmlForPreview = (html = "") =>
-    String(html)
+    sanitizeRichHtml(html)
         .replace(/(\s*<p><br><\/p>\s*){2,}/gi, "<p><br></p>")
         .replace(/(&nbsp;){2,}/gi, " ")
         .replace(/(<br\s*\/?>(\s|&nbsp;)*)+$/gi, "")
@@ -457,7 +445,7 @@ const renderBlock = (block) => {
     }
 
     if (block.kind === "html") {
-        return <div className="preview-rich-entry" dangerouslySetInnerHTML={{ __html: block.html }} />;
+        return <div className="preview-rich-entry" dangerouslySetInnerHTML={{ __html: sanitizeRichHtml(block.html) }} />;
     }
 
     if (block.kind === "education") {
@@ -470,7 +458,7 @@ const renderBlock = (block) => {
                 {edu.location ? <div>{edu.location}</div> : null}
                 {hasDateRange ? <div className="preview-education-dates">{edu.dateRange}</div> : null}
                 {edu.additionalInfo && !isRichTextEmpty(edu.additionalInfo) ? (
-                    <div className="preview-rich-entry" dangerouslySetInnerHTML={{ __html: edu.additionalInfo }} />
+                    <div className="preview-rich-entry" dangerouslySetInnerHTML={{ __html: sanitizeRichHtml(edu.additionalInfo) }} />
                 ) : null}
             </div>
         );

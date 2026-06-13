@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 4,
+  "template": "A",
+  "filename": "OnClickCV-Smoke-Test",
+  "cvData": {
+    "name": "Smoke Test",
+    "email": "smoke@example.com",
+    "phone": "",
+    "linkedin": "",
+    "summary": "A minimal export smoke test.",
+    "workExperience": ["<p><strong>Engineer</strong> - Built reliable systems.</p>"],
+    "volunteerExperience": [],
+    "education": [],
+    "skills": ["Node.js", "React"],
+    "projects": [],
+    "certifications": [],
+    "awards": [],
+    "additionalInfo": "",
+    "interests": "",
+    "sectionLayout": {
+      "left": ["personal", "skills"],
+      "right": ["summary", "work"],
+      "editorCardOrder": ["personal", "summary", "work", "skills", "template-export"]
+    }
+  }
+}
