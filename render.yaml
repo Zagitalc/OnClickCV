@@ -2,6 +2,7 @@ services:
   - type: web
     name: onclickcv-staging
     runtime: docker
+    plan: free
     branch: v4
     autoDeploy: true
     dockerfilePath: ./Dockerfile
