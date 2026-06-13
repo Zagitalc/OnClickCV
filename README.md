@@ -119,6 +119,7 @@ AI review is feature-flagged and configured via environment files:
 PORT=4000
 MONGODB_URI=mongodb://localhost:27017/onclickcv
 AI_REVIEW_ENABLED=true
+CV_PERSISTENCE_ENABLED=true
 OPENAI_API_KEY=YOUR_OPENAI_API_KEY
 OPENAI_MODEL=gpt-5-mini
 ```
@@ -126,13 +127,33 @@ OPENAI_MODEL=gpt-5-mini
 `client/.env`
 
 ```env
-REACT_APP_API_BASE_URL=http://localhost:4000
-REACT_APP_AI_REVIEW_ENABLED=true
+VITE_API_BASE_URL=http://localhost:4000
+VITE_AI_REVIEW_ENABLED=true
+VITE_CV_PERSISTENCE_ENABLED=true
 ```
 
 Important:
 - Keep `OPENAI_API_KEY` only in `server/.env` (never in `client/.env`).
 - Restart server/client after changing env files.
+
+## Render Staging
+
+The repository includes a staging-only Render Blueprint in `render.yaml`. It defines
+`onclickcv-staging` and continues to track the remote `v4` branch even after the
+Blueprint is merged into `main`. A separate production service tracking `main`
+will be added after staging approval.
+
+Staging is intentionally stateless:
+
+- AI and CV persistence routes are not mounted.
+- AI and Save/Load controls are removed during the Vite build.
+- Paste-text import, preview, PDF export, and DOCX export remain enabled.
+- Exported documents are processed transiently and are not intentionally stored.
+
+Create the Render service from the Blueprint after the hardening branch has been
+merged and pushed to `v4`. Render must build the root `Dockerfile`; the Vite flags
+in `render.yaml` are build-time values, while the server feature flags are checked
+at runtime.
 
 ### Step 5: Open the app
 

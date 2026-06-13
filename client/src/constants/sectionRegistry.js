@@ -1,19 +1,10 @@
+import { extractRichText } from "../utils/richText";
+
 const hasRichEntries = (entries = []) =>
-    (entries || []).some((entry) => {
-        const text = String(entry || "")
-            .replace(/<[^>]*>/g, " ")
-            .replace(/&nbsp;/gi, " ")
-            .replace(/\s+/g, " ")
-            .trim();
-        return text.length > 0;
-    });
+    (entries || []).some((entry) => extractRichText(entry).length > 0);
 
 const hasRichValue = (value = "") =>
-    String(value || "")
-        .replace(/<[^>]*>/g, " ")
-        .replace(/&nbsp;/gi, " ")
-        .replace(/\s+/g, " ")
-        .trim().length > 0;
+    extractRichText(value).length > 0;
 
 const hasEducationEntries = (entries = []) =>
     (entries || []).some((entry = {}) => {
@@ -21,11 +12,7 @@ const hasEducationEntries = (entries = []) =>
             .map((value) => String(value || "").trim())
             .join(" ")
             .trim();
-        const additional = String(entry.additionalInfo || "")
-            .replace(/<[^>]*>/g, " ")
-            .replace(/&nbsp;/gi, " ")
-            .replace(/\s+/g, " ")
-            .trim();
+        const additional = extractRichText(entry.additionalInfo);
         return Boolean(base || additional);
     });
 

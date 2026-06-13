@@ -1,4 +1,5 @@
 import React from "react";
+import { extractRichText } from "../utils/richText";
 
 const SECTION_LABELS = [
     ["personal", "Personal Details"],
@@ -40,12 +41,7 @@ export const getDetectedSections = (cvData = {}) => {
     return { detected, notDetected };
 };
 
-const stripHtml = (value = "") =>
-    String(value)
-        .replace(/<[^>]*>/g, " ")
-        .replace(/&nbsp;/gi, " ")
-        .replace(/\s+/g, " ")
-        .trim();
+const stripHtml = (value = "") => extractRichText(value);
 
 const previewArray = (items = []) => items.map(stripHtml).filter(Boolean).slice(0, 3).join(" | ");
 const DEFAULT_IMPORT_WARNING =
