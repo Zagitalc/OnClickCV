@@ -6,7 +6,7 @@
     "node": "^20.19 || ^22.12"
   },
   "dependencies": {
-    "dompurify": "3.4.10",
+    "dompurify": "3.4.13",
     "quill": "2.0.2",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
@@ -30,7 +30,7 @@
     ]
   },
   "devDependencies": {
-    "@babel/core": "^7.29.0",
+    "@babel/core": "^7.29.7",
     "@babel/preset-env": "^7.29.2",
     "@babel/preset-react": "^7.28.5",
     "@vitejs/plugin-react": "^6.0.1",
