@@ -2,6 +2,7 @@ const express = require("express");
 const { rateLimit } = require("express-rate-limit");
 const router = express.Router();
 const { saveCV, getCV } = require("../controllers/cvController");
+const { createJsonParser } = require("../middleware/http");
 
 const cvWriteLimiter = rateLimit({
     windowMs: 60 * 1000,
@@ -18,7 +19,7 @@ const cvReadLimiter = rateLimit({
 });
 
 // Save or update CV
-router.post("/save", cvWriteLimiter, saveCV);
+router.post("/save", createJsonParser(express, "300kb"), cvWriteLimiter, saveCV);
 
 // Get CV by userId
 router.get("/:userId", cvReadLimiter, getCV);
