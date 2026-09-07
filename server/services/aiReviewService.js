@@ -394,7 +394,7 @@ const normalizeLooseResponse = (rawResponse = {}, requestInput = {}) => {
 
     const rawBySection = rawResponse?.bySection && typeof rawResponse.bySection === "object"
         ? rawResponse.bySection
-        : {};
+        : Object.create(null);
 
     const bySection = new Map();
     Object.entries(rawBySection).forEach(([sectionId, sectionFeedback]) => {

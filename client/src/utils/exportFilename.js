@@ -1,6 +1,17 @@
 import { extractRichText } from "./richText";
 
 const stripHtml = (value = "") => extractRichText(value);
+const stripHtml = (value = "") =>
+    String(value || "")
+        .replace(/<[^>]*>/g, " ")
+        .replace(/&nbsp;/gi, " ")
+        .replace(/&lt;/gi, "<")
+        .replace(/&gt;/gi, ">")
+        .replace(/&quot;/gi, '"')
+        .replace(/&#39;/gi, "'")
+        .replace(/&amp;/gi, "&")
+        .replace(/\s+/g, " ")
+        .trim();
 
 const slugify = (value = "") =>
     String(value || "")
