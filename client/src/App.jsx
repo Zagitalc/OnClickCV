@@ -11,13 +11,11 @@ import { getDefaultSectionLayout, normalizeSectionLayout } from "./utils/section
 import { buildFilenameSuggestions, resolveExportFilename, sanitizeFilenameBase } from "./utils/exportFilename";
 import { applySuggestionPatch, parseSuggestionFieldPath } from "./utils/aiPatch";
 import { consumeSse } from "./utils/aiStream";
+import { getApiBaseUrl, isAiReviewEnabled, isCvPersistenceEnabled } from "./config";
 import "./index.css";
-import "react-quill/dist/quill.snow.css";
+import "react-quill-new/dist/quill.snow.css";
 
-const API_BASE_URL =
-    process.env.REACT_APP_API_BASE_URL || (process.env.NODE_ENV === "production" ? "" : "http://localhost:4000");
-const apiUrl = (path) => `${API_BASE_URL}${path}`;
-const isAiReviewEnabled = () => String(process.env.REACT_APP_AI_REVIEW_ENABLED || "").toLowerCase() === "true";
+const apiUrl = (path) => `${getApiBaseUrl()}${path}`;
 const isMobileViewport = () => (typeof window !== "undefined" ? window.innerWidth <= 1023 : false);
 
 const getInitialCvData = () => ({
@@ -175,6 +173,7 @@ const buildSectionMarkers = (suggestions = []) => {
 
 function App() {
     const aiReviewEnabled = isAiReviewEnabled();
+    const cvPersistenceEnabled = isCvPersistenceEnabled();
     const [cvData, setCvData] = useState(getInitialCvData);
     const [template, setTemplate] = useState("A");
     const [isExporting, setIsExporting] = useState(false);
@@ -265,11 +264,13 @@ function App() {
         try {
             const endpoint = apiUrl(`/api/export/${format}`);
             const payload = {
+                schemaVersion: 4,
                 cvData: {
                     ...normalizeCvDataShape(cvData),
                     sectionLayout: normalizeSectionLayout(cvData.sectionLayout, cvData)
                 },
-                template
+                template,
+                filename: requestedBaseName || exportFileBaseName || exportFileSuggestions[0] || "CV"
             };
 
             const response = await fetch(endpoint, {
@@ -729,8 +730,9 @@ function App() {
                                 exportFileBaseName={exportFileBaseName}
                                 onExportFileBaseNameChange={setExportFileBaseName}
                                 exportFileSuggestions={exportFileSuggestions}
-                                onSave={handleSaveCV}
-                                onLoad={handleLoadCV}
+                                onSave={cvPersistenceEnabled ? handleSaveCV : undefined}
+                                onLoad={cvPersistenceEnabled ? handleLoadCV : undefined}
+                                persistenceEnabled={cvPersistenceEnabled}
                                 layoutMetrics={layoutMetrics}
                                 isMobile={isMobile}
                                 aiEnabled={aiReviewEnabled}

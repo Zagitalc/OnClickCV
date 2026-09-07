@@ -1,3 +1,6 @@
+import { extractRichText } from "./richText";
+
+const stripHtml = (value = "") => extractRichText(value);
 const stripHtml = (value = "") =>
     String(value || "")
         .replace(/<[^>]*>/g, " ")

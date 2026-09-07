@@ -396,30 +396,34 @@ const normalizeLooseResponse = (rawResponse = {}, requestInput = {}) => {
         ? rawResponse.bySection
         : Object.create(null);
 
-    const bySection = Object.create(null);
+    const bySection = new Map();
     Object.entries(rawBySection).forEach(([sectionId, sectionFeedback]) => {
         if (!CONTENT_SECTION_IDS.includes(sectionId) || !sectionFeedback || typeof sectionFeedback !== "object") {
             return;
         }
-        bySection[sectionId] = {
+        bySection.set(sectionId, {
             strengths: Array.isArray(sectionFeedback.strengths) ? sectionFeedback.strengths.slice(0, 4) : [],
             suggestions: Array.isArray(sectionFeedback.suggestions) ? sectionFeedback.suggestions.slice(0, 5) : []
-        };
+        });
     });
 
     if (mode === "section") {
-        if (!bySection[requestInput.sectionId]) {
-            bySection[requestInput.sectionId] = { strengths: [], suggestions: [] };
+        if (!bySection.has(requestInput.sectionId)) {
+            bySection.set(requestInput.sectionId, { strengths: [], suggestions: [] });
         }
-        if (bySection[requestInput.sectionId].suggestions.length === 0) {
-            bySection[requestInput.sectionId].suggestions = topFixes.map((fix) => fix.title).slice(0, 3);
+        const sectionFeedback = bySection.get(requestInput.sectionId);
+        if (sectionFeedback.suggestions.length === 0) {
+            sectionFeedback.suggestions = topFixes.map((fix) => fix.title).slice(0, 3);
         }
-    } else if (Object.keys(bySection).length === 0 && topFixes.length > 0) {
+    } else if (bySection.size === 0 && topFixes.length > 0) {
         topFixes.forEach((fix) => {
-            if (!bySection[fix.sectionId]) {
-                bySection[fix.sectionId] = { strengths: [], suggestions: [] };
+            if (!CONTENT_SECTION_IDS.includes(fix.sectionId)) {
+                return;
             }
-            bySection[fix.sectionId].suggestions.push(fix.title);
+            if (!bySection.has(fix.sectionId)) {
+                bySection.set(fix.sectionId, { strengths: [], suggestions: [] });
+            }
+            bySection.get(fix.sectionId).suggestions.push(fix.title);
         });
     }
 
@@ -441,7 +445,7 @@ const normalizeLooseResponse = (rawResponse = {}, requestInput = {}) => {
             summary: overallSummary
         },
         topFixes,
-        bySection
+        bySection: Object.fromEntries(bySection)
     };
 
     if (mode === "job-match") {
@@ -629,7 +633,7 @@ const callOpenAi = async ({ apiKey, model, messages, fetchImpl }) => {
 };
 
 const normalizeBySection = (bySection = {}, requestInput = {}) => {
-    const normalized = {};
+    const normalized = new Map();
     const keys = Object.keys(bySection || {});
 
     keys.forEach((sectionId) => {
@@ -638,20 +642,20 @@ const normalizeBySection = (bySection = {}, requestInput = {}) => {
         }
 
         const sectionFeedback = bySection[sectionId] || {};
-        normalized[sectionId] = {
+        normalized.set(sectionId, {
             strengths: Array.isArray(sectionFeedback.strengths) ? sectionFeedback.strengths.slice(0, 4) : [],
             suggestions: Array.isArray(sectionFeedback.suggestions) ? sectionFeedback.suggestions.slice(0, 5) : []
-        };
+        });
     });
 
-    if (requestInput.mode === "section" && requestInput.sectionId && !normalized[requestInput.sectionId]) {
-        normalized[requestInput.sectionId] = {
+    if (requestInput.mode === "section" && requestInput.sectionId && !normalized.has(requestInput.sectionId)) {
+        normalized.set(requestInput.sectionId, {
             strengths: [],
             suggestions: []
-        };
+        });
     }
 
-    return normalized;
+    return Object.fromEntries(normalized);
 };
 
 const normalizeTopFixes = (topFixes = [], requestInput = {}) =>

@@ -1,4 +1,3 @@
-const puppeteer = require("puppeteer");
 const {
     AlignmentType,
     BorderStyle,
@@ -15,6 +14,15 @@ const {
     WidthType
 } = require("docx");
 const { getOutputSectionsForTemplate, normalizeSectionLayout } = require("../utils/sectionLayout");
+const { extractText, sanitizeRichText } = require("../utils/richText");
+const { buildDownloadHeaders } = require("../utils/downloadHeaders");
+const {
+    ExportCapacityError,
+    docxSlots,
+    pdfQueue
+} = require("../services/exportCapacity");
+const { renderPdf } = require("../services/pdfRenderer");
+const { config } = require("../config");
 
 const normalizeArray = (value) => (Array.isArray(value) ? value : []);
 const isRichTextEmpty = (value) => !value || value === "<p><br></p>" || value.trim() === "";
@@ -28,18 +36,8 @@ const escapeHtml = (value = "") =>
         .replace(/\"/g, "&quot;")
         .replace(/'/g, "&#39;");
 
-const decodeHtmlEntities = (value = "") =>
-    String(value)
-        .replace(/&nbsp;/g, " ")
-        .replace(/&amp;/g, "&")
-        .replace(/&lt;/g, "<")
-        .replace(/&gt;/g, ">")
-        .replace(/&quot;/g, '"')
-        .replace(/&#39;/g, "'")
-        .replace(/&apos;/g, "'");
-
 const normalizeRichHtmlForExport = (value = "") =>
-    String(value || "")
+    sanitizeRichText(value)
         .replace(/(\s*<p><br><\/p>\s*){2,}/gi, "<p><br></p>")
         .replace(/(&nbsp;|\u00a0)+/gi, " ")
         .replace(/(<br\s*\/?>(\s|&nbsp;)*)+$/gi, "")
@@ -88,7 +86,7 @@ const formatPlainText = (value) => {
     return escapeHtml(value).replace(/\n/g, "<br />");
 };
 
-const stripHtml = (value = "") => decodeHtmlEntities(String(value).replace(/<[^>]*>/g, " ")).replace(/\s+/g, " ").trim();
+const stripHtml = (value = "") => extractText(value);
 const getValidRichEntries = (entries) =>
     normalizeArray(entries)
         .map((entry) => normalizeRichHtmlForExport(entry))
@@ -560,7 +558,7 @@ const parseInlineHtmlToWordRuns = (html, options = {}) => {
             return;
         }
 
-        const text = decodeHtmlEntities(token);
+        const text = extractText(token);
         if (!text || !text.trim()) {
             return;
         }
@@ -1394,52 +1392,102 @@ const buildWordDocument = (cvData = {}, template = "A") => {
 };
 
 const exportPDF = async (req, res) => {
+    let cancelled = false;
+    req.on("aborted", () => {
+        cancelled = true;
+    });
+    res.on("close", () => {
+        if (!res.writableEnded) {
+            cancelled = true;
+        }
+    });
+
     try {
-        const { cvData, template } = req.body;
+        const { cvData, template, filename } = req.exportRequest;
         const htmlContent = generateHTML(cvData, template);
+        const pdfBuffer = await pdfQueue.run(() => renderPdf(htmlContent, {
+            isCancelled: () => cancelled
+        }));
 
-        const browser = await puppeteer.launch({
-            executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || undefined,
-            args: ["--no-sandbox", "--disable-setuid-sandbox"]
-        });
-        const page = await browser.newPage();
-        await page.setContent(htmlContent, { waitUntil: "networkidle0" });
+        if (cancelled) {
+            return;
+        }
 
-        const pdfBuffer = await page.pdf({
-            format: "A4",
-            printBackground: true
-        });
-
-        await browser.close();
-
-        res.set({
-            "Content-Type": "application/pdf",
-            "Content-Disposition": "attachment; filename=OnClickCV.pdf"
-        });
-
+        res.set(buildDownloadHeaders(filename, "pdf", "application/pdf"));
         return res.send(pdfBuffer);
     } catch (err) {
-        console.error("Error generating PDF:", err);
-        return res.status(500).json({ error: "Failed to generate PDF." });
+        if (cancelled || res.headersSent) {
+            return;
+        }
+        if (err instanceof ExportCapacityError) {
+            if (err.retryAfter) {
+                res.set("Retry-After", String(err.retryAfter));
+            }
+            return res.status(err.statusCode).json({ error: err.code, message: err.message });
+        }
+        if (err.code === "pdf_page_limit_exceeded") {
+            return res.status(422).json({ error: err.code, message: err.message });
+        }
+        if (err.code === "pdf_export_timeout") {
+            return res.status(503).json({ error: err.code, message: err.message });
+        }
+        console.error("PDF export failed:", err.message);
+        return res.status(500).json({ error: "pdf_export_failed", message: "Failed to generate PDF." });
     }
 };
 
 const exportWord = async (req, res) => {
-    try {
-        const { cvData, template } = req.body;
-        const doc = buildWordDocument(cvData || {}, template);
+    let cancelled = false;
+    req.on("aborted", () => {
+        cancelled = true;
+    });
+    res.on("close", () => {
+        if (!res.writableEnded) {
+            cancelled = true;
+        }
+    });
 
-        const buffer = await Packer.toBuffer(doc);
-        res.set({
-            "Content-Type":
-                "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-            "Content-Disposition": "attachment; filename=OnClickCV.docx"
+    try {
+        const { cvData, template, filename } = req.exportRequest;
+        const buffer = await docxSlots.run(async () => {
+            const operation = Packer.toBuffer(buildWordDocument(cvData, template));
+            let timer;
+            const timeout = new Promise((resolve, reject) => {
+                timer = setTimeout(() => {
+                    const error = new Error("DOCX export exceeded its execution timeout.");
+                    error.code = "docx_export_timeout";
+                    reject(error);
+                }, config.docxExecutionMs);
+            });
+            try {
+                return await Promise.race([operation, timeout]);
+            } finally {
+                clearTimeout(timer);
+            }
         });
 
+        if (cancelled) {
+            return;
+        }
+
+        res.set(buildDownloadHeaders(
+            filename,
+            "docx",
+            "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+        ));
         return res.send(buffer);
     } catch (err) {
-        console.error("Error generating Word doc:", err);
-        return res.status(500).json({ error: "Failed to generate Word." });
+        if (cancelled || res.headersSent) {
+            return;
+        }
+        if (err instanceof ExportCapacityError) {
+            return res.status(err.statusCode).json({ error: err.code, message: err.message });
+        }
+        if (err.code === "docx_export_timeout") {
+            return res.status(503).json({ error: err.code, message: err.message });
+        }
+        console.error("DOCX export failed:", err.message);
+        return res.status(500).json({ error: "docx_export_failed", message: "Failed to generate DOCX." });
     }
 };
 

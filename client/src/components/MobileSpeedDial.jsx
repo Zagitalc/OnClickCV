@@ -10,15 +10,16 @@ const MobileSpeedDial = ({ activeView, onChangeView, onOpenAI, hasPendingSuggest
             <span className="mobile-nav-label">Stack</span>
         </button>
 
-        <button
-            type="button"
-            className={`mobile-nav-btn mobile-nav-center ${hasPendingSuggestions ? "pending" : ""}`}
-            onClick={() => onOpenAI && onOpenAI()}
-            disabled={!aiEnabled}
-            aria-label="Open AI review"
-        >
-            <span className="mobile-nav-label">AI</span>
-        </button>
+        {aiEnabled ? (
+            <button
+                type="button"
+                className={`mobile-nav-btn mobile-nav-center ${hasPendingSuggestions ? "pending" : ""}`}
+                onClick={() => onOpenAI && onOpenAI()}
+                aria-label="Open AI review"
+            >
+                <span className="mobile-nav-label">AI</span>
+            </button>
+        ) : null}
 
         <button
             type="button"
@@ -31,4 +32,3 @@ const MobileSpeedDial = ({ activeView, onChangeView, onOpenAI, hasPendingSuggest
 );
 
 export default MobileSpeedDial;
-
