@@ -394,9 +394,9 @@ const normalizeLooseResponse = (rawResponse = {}, requestInput = {}) => {
 
     const rawBySection = rawResponse?.bySection && typeof rawResponse.bySection === "object"
         ? rawResponse.bySection
-        : {};
+        : Object.create(null);
 
-    const bySection = {};
+    const bySection = Object.create(null);
     Object.entries(rawBySection).forEach(([sectionId, sectionFeedback]) => {
         if (!CONTENT_SECTION_IDS.includes(sectionId) || !sectionFeedback || typeof sectionFeedback !== "object") {
             return;
