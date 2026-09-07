@@ -12,7 +12,9 @@ beforeAll(async () => {
 
     mongoServer = await MongoMemoryServer.create({
         instance: {
-            ip: "127.0.0.1"
+            ip: "127.0.0.1",
+            port: 27018,
+            portGeneration: false
         }
     });
     await mongoose.connect(mongoServer.getUri());

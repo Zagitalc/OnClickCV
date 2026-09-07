@@ -4,7 +4,7 @@ import { Simulate } from "react-dom/test-utils";
 import CVForm from "./CVForm";
 import { getDefaultSectionLayout } from "../utils/sectionLayout";
 
-jest.mock("react-quill", () => {
+jest.mock("react-quill-new", () => {
     return function MockReactQuill({ value, onChange, placeholder }) {
         return (
             <textarea
@@ -39,7 +39,13 @@ const templateOptions = [
     { value: "B", label: "Template B (Modern Sidebar)" }
 ];
 
-const FormHarness = ({ layoutMetrics, onExport = () => {}, reviewMarkers = {}, onOpenImport = () => {} }) => {
+const FormHarness = ({
+    layoutMetrics,
+    onExport = () => {},
+    reviewMarkers = {},
+    onOpenImport = () => {},
+    persistenceEnabled = true
+}) => {
     const [cvData, setCvData] = useState(baseCvData);
     const [exportName, setExportName] = useState("JaneDoe_Resume_TemplateA_2026-02-17");
 
@@ -65,6 +71,7 @@ const FormHarness = ({ layoutMetrics, onExport = () => {}, reviewMarkers = {}, o
             ]}
             onSave={() => {}}
             onLoad={() => {}}
+            persistenceEnabled={persistenceEnabled}
             layoutMetrics={
                 layoutMetrics || {
                     totalPages: 1,
@@ -106,6 +113,13 @@ describe("CVForm", () => {
             root.unmount();
         });
         container.remove();
+    });
+
+    it("omits Save / Load when persistence is disabled", () => {
+        act(() => {
+            root.render(<FormHarness persistenceEnabled={false} />);
+        });
+        expect(getCardBySectionId(container, "save-load")).toBeNull();
     });
 
     it("opens and closes simple card sections", () => {

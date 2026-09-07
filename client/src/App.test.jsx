@@ -58,7 +58,7 @@ describe("App", () => {
         window.URL.revokeObjectURL = jest.fn();
         window.alert = jest.fn();
         consumeSse.mockReset();
-        delete process.env.REACT_APP_AI_REVIEW_ENABLED;
+        delete process.env.VITE_AI_REVIEW_ENABLED;
     });
 
     afterEach(() => {
@@ -66,7 +66,7 @@ describe("App", () => {
             root.unmount();
         });
         container.remove();
-        delete process.env.REACT_APP_AI_REVIEW_ENABLED;
+        delete process.env.VITE_AI_REVIEW_ENABLED;
     });
 
     it("keeps desktop preview panel visible in split layout", () => {
@@ -324,7 +324,7 @@ describe("App", () => {
     });
 
     it("switches desktop right panel between preview and AI review when AI is enabled", () => {
-        process.env.REACT_APP_AI_REVIEW_ENABLED = "true";
+        process.env.VITE_AI_REVIEW_ENABLED = "true";
         window.innerWidth = 1280;
 
         act(() => {
@@ -342,7 +342,7 @@ describe("App", () => {
     });
 
     it("opens mobile AI review modal from bottom navigation center action", () => {
-        process.env.REACT_APP_AI_REVIEW_ENABLED = "true";
+        process.env.VITE_AI_REVIEW_ENABLED = "true";
         window.innerWidth = 800;
 
         act(() => {
@@ -359,7 +359,7 @@ describe("App", () => {
     });
 
     it("accumulates streamed AI suggestions and marks panel ready", async () => {
-        process.env.REACT_APP_AI_REVIEW_ENABLED = "true";
+        process.env.VITE_AI_REVIEW_ENABLED = "true";
         window.innerWidth = 1280;
 
         global.fetch = jest.fn().mockResolvedValue({
@@ -408,7 +408,7 @@ describe("App", () => {
     });
 
     it("falls back to non-stream endpoint when SSE consumption fails", async () => {
-        process.env.REACT_APP_AI_REVIEW_ENABLED = "true";
+        process.env.VITE_AI_REVIEW_ENABLED = "true";
         window.innerWidth = 1280;
 
         global.fetch = jest

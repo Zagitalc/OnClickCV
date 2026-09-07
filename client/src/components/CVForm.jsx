@@ -1,11 +1,12 @@
 import React, { useMemo, useState } from "react";
-import ReactQuill from "react-quill";
+import ReactQuill from "react-quill-new";
 import SectionEditorOverlay from "./SectionEditorOverlay";
 import SectionCard from "./forms/SectionCard";
 import ExportFilenamePicker from "./ExportFilenamePicker";
 import { SECTION_REGISTRY } from "../constants/sectionRegistry";
 import { canDragSection, getCompletionStatus, reorderEditorCards } from "../utils/sectionLayout";
-import "react-quill/dist/quill.snow.css";
+import { extractRichText, sanitizeRichHtml } from "../utils/richText";
+import "react-quill-new/dist/quill.snow.css";
 
 const FALLBACK_TEMPLATE_OPTIONS = [
     { value: "A", label: "Template A (Clean)" },
@@ -15,20 +16,13 @@ const FALLBACK_TEMPLATE_OPTIONS = [
 
 const isRichTextEmpty = (value) => !value || value === "<p><br></p>" || value.trim() === "";
 
-const stripHtml = (value = "") =>
-    String(value)
-        .replace(/<[^>]*>/g, " ")
-        .replace(/&nbsp;/gi, " ")
-        .replace(/\s+/g, " ")
-        .trim();
-
 const countWords = (value = "") =>
     String(value)
         .trim()
         .split(/\s+/)
         .filter(Boolean).length;
 
-const countRichTextWords = (value = "") => countWords(stripHtml(value));
+const countRichTextWords = (value = "") => countWords(extractRichText(value));
 
 const formatDateShort = (dateString) => {
     if (!dateString) {
@@ -82,6 +76,7 @@ const CVForm = ({
     exportFileSuggestions,
     onSave,
     onLoad,
+    persistenceEnabled = true,
     layoutMetrics,
     isMobile,
     aiEnabled,
@@ -524,7 +519,7 @@ const CVForm = ({
                         <div className="entry-list">
                             {(cvData.workExperience || []).map((work, idx) => (
                                 <div key={idx} className="entry-list-item">
-                                    <div className="entry-rich-text" dangerouslySetInnerHTML={{ __html: work }} />
+                                    <div className="entry-rich-text" dangerouslySetInnerHTML={{ __html: sanitizeRichHtml(work) }} />
                                     <button type="button" onClick={() => handleRemoveWork(idx)} className="remove-btn">Remove</button>
                                 </div>
                             ))}
@@ -558,7 +553,7 @@ const CVForm = ({
                         <div className="entry-list">
                             {(cvData.volunteerExperience || []).map((volunteer, idx) => (
                                 <div key={idx} className="entry-list-item">
-                                    <div className="entry-rich-text" dangerouslySetInnerHTML={{ __html: volunteer }} />
+                                    <div className="entry-rich-text" dangerouslySetInnerHTML={{ __html: sanitizeRichHtml(volunteer) }} />
                                     <button type="button" onClick={() => handleRemoveVolunteer(idx)} className="remove-btn">Remove</button>
                                 </div>
                             ))}
@@ -592,7 +587,7 @@ const CVForm = ({
                         <div className="entry-list">
                             {(cvData.projects || []).map((project, idx) => (
                                 <div key={idx} className="entry-list-item">
-                                    <div className="entry-rich-text" dangerouslySetInnerHTML={{ __html: project }} />
+                                    <div className="entry-rich-text" dangerouslySetInnerHTML={{ __html: sanitizeRichHtml(project) }} />
                                     <button type="button" onClick={() => handleRemoveProject(idx)} className="remove-btn">Remove</button>
                                 </div>
                             ))}
@@ -690,7 +685,7 @@ const CVForm = ({
                                     <div>{edu.location || "N/A"}</div>
                                     <div className="education-dates">{formatDateRange(edu.startDate, edu.endDate)}</div>
                                     {edu.additionalInfo && !isRichTextEmpty(edu.additionalInfo) ? (
-                                        <div className="entry-rich-text" dangerouslySetInnerHTML={{ __html: edu.additionalInfo }} />
+                                        <div className="entry-rich-text" dangerouslySetInnerHTML={{ __html: sanitizeRichHtml(edu.additionalInfo) }} />
                                     ) : null}
                                 </div>
                             ))}
@@ -717,7 +712,7 @@ const CVForm = ({
                         <div className="entry-list">
                             {(cvData.certifications || []).map((cert, idx) => (
                                 <div key={idx} className="entry-list-item">
-                                    <div className="entry-rich-text" dangerouslySetInnerHTML={{ __html: cert }} />
+                                    <div className="entry-rich-text" dangerouslySetInnerHTML={{ __html: sanitizeRichHtml(cert) }} />
                                     <button type="button" className="remove-btn" onClick={() => handleRemoveCert(idx)}>Remove</button>
                                 </div>
                             ))}
@@ -751,7 +746,7 @@ const CVForm = ({
                         <div className="entry-list">
                             {(cvData.awards || []).map((award, idx) => (
                                 <div key={idx} className="entry-list-item">
-                                    <div className="entry-rich-text" dangerouslySetInnerHTML={{ __html: award }} />
+                                    <div className="entry-rich-text" dangerouslySetInnerHTML={{ __html: sanitizeRichHtml(award) }} />
                                     <button type="button" className="remove-btn" onClick={() => handleRemoveAward(idx)}>Remove</button>
                                 </div>
                             ))}
@@ -844,8 +839,11 @@ const CVForm = ({
     };
 
     const orderedSections = useMemo(
-        () => (sectionLayout?.editorCardOrder || []).map((id) => SECTION_REGISTRY[id]).filter(Boolean),
-        [sectionLayout]
+        () => (sectionLayout?.editorCardOrder || [])
+            .filter((id) => persistenceEnabled || id !== "save-load")
+            .map((id) => SECTION_REGISTRY[id])
+            .filter(Boolean),
+        [persistenceEnabled, sectionLayout]
     );
 
     const completion = useMemo(() => getCompletionStatus(cvData), [cvData]);

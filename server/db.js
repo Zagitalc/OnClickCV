@@ -32,10 +32,6 @@ async function connectDB(uri = DEFAULT_MONGODB_URI) {
     return mongoose.connection;
 }
 
-if (process.env.NODE_ENV !== "test") {
-    connectDB();
-}
-
 module.exports = connectDB;
 module.exports.connectDB = connectDB;
 module.exports.mongoose = mongoose;
